@@ -1,11 +1,13 @@
-grupo: N
-lenguaje: LX_nombre
+grupo: 1
+lenguaje: L1_aho
 integrantes:
-  - Ap_Nom
-  - Ap_Nom
-  - Ap_Nom
+  - Martucci_Federico
+  - Branchesi_Tomas
+  - Brocani_Agustin
+  - Bianchi_Juan
+  - Lopez_Rodofile_Alejo 
 temas_especiales:
-  - TEX
-  - TEX
-notacion: NOTX
-profesor: PROFX
+  - TE1_matchPatterns
+  - TE3_powerSpaceship
+notacion: polaca_inversa
+profesor: Daniel
