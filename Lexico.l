@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "y.tab.h"
-FILE  *yyin;
-int yylval;
 char *yyltext;
 
 
@@ -54,7 +52,7 @@ LETRA			[a-zA-Z]
 
 CTE_INT			{DIGITO}+
 CTE_FLOAT		{DIGITO}+"."{DIGITO}+
-CTE_STRING		\"[^\"\n]*\"
+CTE_STRING		\"({LETRA}|{DIGITO})*\"
 ID			{LETRA}({LETRA}|{DIGITO})*
 
 OP_SUM			"+"
@@ -82,9 +80,33 @@ OP_RANGO		".."
 
 "#+"([^+]|"+"[^#])*"+#"	{ /* comentario: se descarta, no genera token */ }
 
-{CTE_FLOAT}		{printf("\nConstante Float: %s\n", yytext);return CTE_FLOAT;}
-{CTE_INT}		{printf("\nConstante Int: %s\n", yytext);return CTE_INT;}
-{CTE_STRING}		{printf("\nConstante String: %s\n", yytext);return CTE_STRING;}
+{CTE_FLOAT}		{
+                    double valor = atof(yytext);
+                    if (valor > 3.4028235e38) {
+                        printf("\nERROR LEXICO: Constante Float fuera de cota: %s\n", yytext);
+                        exit(0);
+                    }
+                    printf("\nConstante Float: %s\n", yytext);
+                    return CTE_FLOAT;
+                }
+{CTE_INT}		{
+                    long valor = atol(yytext);
+                    if (valor > 32767) {
+                        printf("\nERROR LEXICO: Constante Int fuera de cota (max 32767): %s\n", yytext);
+                        exit(0);
+                    }
+                    printf("\nConstante Int: %s\n", yytext);
+                    return CTE_INT;
+                }
+{CTE_STRING}		{
+                    int longitud = strlen(yytext) - 2;
+                    if (longitud > 50) {
+                        printf("\nERROR LEXICO: Constante String excede 50 caracteres: %s\n", yytext);
+                        exit(0);
+                    }
+                    printf("\nConstante String: %s\n", yytext);
+                    return CTE_STRING;
+                }
 
 {ID}			{int tok = buscar_reservada(yytext);
                     if (tok != -1) {
