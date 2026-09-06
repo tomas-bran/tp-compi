@@ -30,7 +30,7 @@
 *.dylib
 
 # Executables
-.exe
+*.exe
 *.out
 *.app
 *.i*86
@@ -58,8 +58,14 @@ bin-debug/
 bin-release/
 
 .idea
+.vscode/
 lex.yy.c
 y.tab.c
 y.output
 y.tab.h
 compilador
+
+### OS junk / editor logs
+.DS_Store
+Thumbs.db
+*.log

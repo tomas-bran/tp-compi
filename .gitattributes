@@ -1,0 +1,16 @@
+# Normaliza los finales de linea entre Windows y Unix/Linux.
+# Sin esto, Git puede convertir automaticamente LF <-> CRLF segun el SO
+# de cada persona (configuracion core.autocrlf), rompiendo scripts como run.sh
+# al ejecutarlos en Linux/WSL/Mac.
+
+# Por defecto, todo archivo de texto se guarda y se entrega en LF.
+* text=auto eol=lf
+
+# Los .bat son especificos de Windows (CMD) y usan CRLF nativamente.
+*.bat text eol=crlf
+
+# Scripts y fuentes del compilador: siempre LF, para que el toolchain de
+# Linux/WSL (flex, bison, gcc) los procese sin errores.
+*.sh text eol=lf
+*.l  text eol=lf
+*.y  text eol=lf
