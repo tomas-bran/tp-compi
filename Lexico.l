@@ -49,10 +49,11 @@ int yyerror(void);
 
 DIGITO			[0-9]
 LETRA			[a-zA-Z]
+ESPACIO         [ \t\n]+
 
 CTE_INT			{DIGITO}+
 CTE_FLOAT		{DIGITO}+"."{DIGITO}+
-CTE_STRING		\"({LETRA}|{DIGITO})*\"
+CTE_STRING		\"({LETRA}|{DIGITO}|{ESPACIO})*\"
 ID			{LETRA}({LETRA}|{DIGITO})*
 
 OP_SUM			"+"
