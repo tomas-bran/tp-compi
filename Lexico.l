@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "y.tab.h"
+#include "tabla_simbolos.h"
 char *yyltext;
 
 typedef struct {
@@ -86,6 +87,10 @@ OP_RANGO		".."
                         printf("\nError Léxico: Constante Float fuera de cota: %s en la línea %d\n", yytext, yylineno);
                         exit(0);
                     }
+                    if (ts_insertar_constante(&tabla_simbolos, TD_FLOAT, yytext, -1, yylineno) == TS_INDICE_INVALIDO) {
+                        fprintf(stderr, "\nError: no hay memoria para guardar la constante %s\n", yytext);
+                        exit(EXIT_FAILURE);
+                    }
                     printf("\nConstante Float: %s en la línea %d\n", yytext, yylineno);
                     return CTE_FLOAT_POSITIVA;
                 }
@@ -96,15 +101,33 @@ OP_RANGO		".."
                         printf("\nError Léxico: Constante Int fuera de cota (min -32768, max 32767): %s en la línea %d\n", yytext, yylineno);
                         exit(0);
                     }
+                    if (ts_insertar_constante(&tabla_simbolos, TD_INT, yytext, -1, yylineno) == TS_INDICE_INVALIDO) {
+                        fprintf(stderr, "\nError: no hay memoria para guardar la constante %s\n", yytext);
+                        exit(EXIT_FAILURE);
+                    }
                     printf("\nConstante Int: %s en la línea %d\n", yytext, yylineno);
                     return CTE_INT_POSITIVA;
                 }
 {CTE_STRING}		{
                     int longitud = strlen(yytext) - 2;
+                    char *valor;
                     if (longitud > 50) {
                         printf("\nError Léxico: Constante String excede 50 caracteres: %s en la línea %d\n", yytext, yylineno);
                         exit(0);
                     }
+                    valor = malloc((size_t)longitud + 1);
+                    if (valor == NULL) {
+                        fprintf(stderr, "\nError: no hay memoria para guardar la constante %s\n", yytext);
+                        exit(EXIT_FAILURE);
+                    }
+                    memcpy(valor, yytext + 1, (size_t)longitud);
+                    valor[longitud] = '\0';
+                    if (ts_insertar_constante(&tabla_simbolos, TD_STRING, valor, longitud, yylineno) == TS_INDICE_INVALIDO) {
+                        free(valor);
+                        fprintf(stderr, "\nError: no hay memoria para guardar la constante %s\n", yytext);
+                        exit(EXIT_FAILURE);
+                    }
+                    free(valor);
                     printf("\nConstante String: %s en la línea %d\n", yytext, yylineno);
                     return CTE_STRING;
                 }
@@ -114,6 +137,10 @@ OP_RANGO		".."
                 printf("\nPalabra reservada: %s en la línea %d\n", yytext, yylineno);
                 return tok;
                      } else {
+                if (ts_insertar_identificador(&tabla_simbolos, yytext, yylineno) == TS_INDICE_INVALIDO) {
+                    fprintf(stderr, "\nError: no hay memoria para guardar el identificador %s\n", yytext);
+                    exit(EXIT_FAILURE);
+                }
                 printf("\nIdentificador: %s en la línea %d\n", yytext, yylineno);
                 return ID;
                     }}

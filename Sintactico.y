@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "tabla_simbolos.h"
 
 // Se utiliza extern para usar una variable que fue creada en otro archivo (y no volver a declararla)
 extern FILE* yyin;
@@ -216,17 +217,37 @@ static void regla(const char* nombre)
 
 int main(int argc, char *argv[])
 {
+    int resultado_parser;
+
+    if (argc < 2) {
+        fprintf(stderr, "Uso: %s <archivo-fuente>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    ts_inicializar(&tabla_simbolos);
+    if (!ts_guardar_archivo(&tabla_simbolos, "symbol-table.txt")) {
+        ts_destruir(&tabla_simbolos);
+        return EXIT_FAILURE;
+    }
+
     if((yyin = fopen(argv[1], "rt"))==NULL)
     {
         printf("\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
-    }
-    else
-    { 
-        yyparse();
+        ts_destruir(&tabla_simbolos);
+        return EXIT_FAILURE;
     }
 
+    resultado_parser = yyparse();
     fclose(yyin);
-    return 0;
+
+    if (resultado_parser == 0
+        && !ts_guardar_archivo(&tabla_simbolos, "symbol-table.txt")) {
+        ts_destruir(&tabla_simbolos);
+        return EXIT_FAILURE;
+    }
+
+    ts_destruir(&tabla_simbolos);
+    return resultado_parser == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 int yyerror(void)

@@ -9,8 +9,8 @@ init {
 
 #+ Asignaciones: se usa := y el valor debe ser compatible con el tipo declarado +#
 a := 10.5
-b := 3.2
-x := 1
+b := 10.5
+x := 5
 y := 5
 contador := 0
 limite := 3
