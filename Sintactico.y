@@ -1,20 +1,26 @@
-// Usa Lexico_ClasePractica
-//Solo expresiones sin ()
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "y.tab.h"
-int yystopparser=0;
-FILE  *yyin;
 
-  int yyerror();
-  int yylex();
+// Se utiliza extern para usar una variable que fue creada en otro archivo (y no volver a declararla)
+extern FILE* yyin;
+extern char* yytext;
+extern int yylineno;
 
+int yyerror();
+int yylex();
 
+// Se utiliza static para quitar visibilidad de la funcion a otros archivos, ya que solo se utiliza en este archivo
+static void regla(const char* nombre)
+{
+    printf("Regla: %s\n", nombre);
+}
 %}
 
-%token CTE_INT
-%token CTE_FLOAT
+%token CTE_INT_POSITIVA
+%token CTE_INT_NEGATIVA
+%token CTE_FLOAT_POSITIVA
+%token CTE_FLOAT_NEGATIVA
 %token CTE_STRING
 %token ID
 %token OP_ASIG
@@ -25,7 +31,7 @@ FILE  *yyin;
 %token PAR_AP
 %token PAR_CI
 
-/* Declaracion de variables */
+// Declaracion de variables
 %token INIT
 %token TIPO_FLOAT
 %token TIPO_INT
@@ -35,7 +41,7 @@ FILE  *yyin;
 %token LLAVE_AP
 %token LLAVE_CI
 
-/* Comparadores */
+// Comparadores
 %token OP_IGUAL
 %token OP_MENOR
 %token OP_MAYOR
@@ -43,7 +49,7 @@ FILE  *yyin;
 %token OP_MAY_IG
 %token OP_DIF
 
-/* Logicos y control */
+// Logicos y control
 %token AND
 %token OR
 %token NOT
@@ -53,62 +59,178 @@ FILE  *yyin;
 %token READ
 %token WRITE
 
-/* TE1 - matchPatterns */
+// TE1 - matchPatterns
 %token WHEN
 %token IS
 %token IN
 %token OP_RANGO
 
-/* TE3 - powerSpaceship */
+// TE3 - powerSpaceship
 %token OP_POT
 %token OP_SPACESHIP
 
 %%
-sentencia:  	   
-	asignacion {printf(" FIN\n");} ;
 
-asignacion: 
-          ID OP_ASIG expresion {printf("    ID = Expresion es ASIGNACION\n");}
-	  ;
+    programa
+    : bloque_declaracion lista_sentencias;
 
-expresion:
-         termino {printf("    Termino es Expresion\n");}
-	 |expresion OP_SUM termino {printf("    Expresion+Termino es Expresion\n");}
-	 |expresion OP_RES termino {printf("    Expresion-Termino es Expresion\n");}
-	 ;
+    bloque_declaracion
+    : INIT LLAVE_AP lista_declaraciones LLAVE_CI { regla("bloque_declaracion"); };
 
-termino: 
-       factor {printf("    Factor es Termino\n");}
-       |termino OP_MUL factor {printf("     Termino*Factor es Termino\n");}
-       |termino OP_DIV factor {printf("     Termino/Factor es Termino\n");}
-       ;
+    lista_declaraciones
+    : declaracion | lista_declaraciones declaracion;
 
-factor: 
-      ID {printf("    ID es Factor \n");}
-      | CTE_INT {printf("    CTE es Factor\n");}
-	| PAR_AP expresion PAR_CI {printf("    Expresion entre parentesis es Factor\n");}
-     	;
+    declaracion
+    : lista_ids DOS_PUNTOS tipo { regla("declaracion"); };
+
+    lista_ids
+    : ID | lista_ids COMA ID;
+
+    tipo
+    : TIPO_INT { regla("tipo_int"); }
+    | TIPO_FLOAT { regla("tipo_float"); }
+    | TIPO_STRING { regla("tipo_string"); };
+
+    lista_sentencias
+    : sentencia
+    | lista_sentencias sentencia;
+
+    bloque
+    : LLAVE_AP lista_sentencias LLAVE_CI;
+
+    sentencia
+    : asignacion
+    | lectura
+    | escritura
+    | seleccion
+    | iteracion
+    | seleccion_patrones
+    ;
+
+    asignacion
+    : ID OP_ASIG expresion { regla("asignacion"); };
+
+    lectura
+    : READ PAR_AP ID PAR_CI { regla("lectura"); };
+
+    escritura
+    : WRITE PAR_AP expresion PAR_CI { regla("escritura"); };
+
+    seleccion
+    : IF PAR_AP condicion PAR_CI bloque { regla("seleccion_if"); }
+    | IF PAR_AP condicion PAR_CI bloque ELSE bloque { regla("seleccion_if_else"); };
+
+    iteracion
+    : WHILE PAR_AP condicion PAR_CI bloque { regla("iteracion_while"); };
+
+    condicion
+    : cond_simple
+    | cond_compuesta
+    | PAR_AP cond_compuesta PAR_CI;
+
+    cond_compuesta
+    : cond_simple AND cond_simple { regla("condicion_and"); }
+    | cond_simple OR cond_simple { regla("condicion_or"); }
+    | NOT cond_simple { regla("condicion_not"); };
+
+    cond_simple
+    : expresion comparador expresion { regla("condicion_simple"); }
+    | PAR_AP cond_simple PAR_CI;
+
+    comparador
+    : OP_IGUAL { regla("comparador_igual"); }
+    | OP_DIF { regla("comparador_distinto"); }
+    | OP_MENOR { regla("comparador_menor"); }
+    | OP_MAYOR { regla("comparador_mayor"); }
+    | OP_MEN_IG { regla("comparador_menor_igual"); }
+    | OP_MAY_IG { regla("comparador_mayor_igual"); };
+
+    seleccion_patrones
+    : WHEN PAR_AP expresion PAR_CI LLAVE_AP lista_ramas LLAVE_CI
+        { regla("when_sin_defecto"); }
+    | WHEN PAR_AP expresion PAR_CI LLAVE_AP lista_ramas rama_defecto LLAVE_CI
+        { regla("when_con_defecto"); };
+
+    lista_ramas
+    : rama
+    | lista_ramas rama;
+
+    rama
+    : patron bloque { regla("rama_when"); };
+
+    rama_defecto
+    : ELSE bloque { regla("rama_defecto"); };
+
+    patron
+    : IS constante { regla("patron_valor_exacto"); }
+    | IN constante OP_RANGO constante { regla("patron_rango"); }
+    | IS comparador constante { regla("patron_guarda"); };
+
+    constante
+    : cte_numerica
+    | OP_RES cte_numerica { regla("constante_negativa"); }
+    | OP_SUM cte_numerica { regla("constante_positiva"); }
+    | CTE_STRING;
+
+    cte_numerica
+    : CTE_INT_POSITIVA
+    | CTE_INT_NEGATIVA
+    | CTE_FLOAT_POSITIVA
+    | CTE_FLOAT_NEGATIVA;
+
+    expresion
+    : exp_aritmetica
+    | exp_aritmetica OP_SPACESHIP exp_aritmetica { regla("spaceship"); };
+
+    exp_aritmetica
+    : termino
+    | exp_aritmetica OP_SUM termino { regla("suma"); }
+    | exp_aritmetica OP_RES termino { regla("resta"); };
+
+    termino
+    : unario
+    | termino OP_MUL unario { regla("multiplicacion"); }
+    | termino OP_DIV unario { regla("division"); };
+
+    unario
+    : potencia
+    | OP_RES unario { regla("negacion"); }
+    | OP_SUM unario { regla("positivo"); };
+
+    potencia
+    : atomo
+    | atomo OP_POT unario { regla("potencia"); };
+
+    atomo
+    : ID
+    | CTE_INT_POSITIVA
+    | CTE_INT_NEGATIVA
+    | CTE_FLOAT_POSITIVA
+    | CTE_FLOAT_NEGATIVA
+    | CTE_STRING
+    | PAR_AP expresion PAR_CI;
+
 %%
 
+#undef yyerror
 
 int main(int argc, char *argv[])
 {
     if((yyin = fopen(argv[1], "rt"))==NULL)
     {
         printf("\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
-       
     }
     else
     { 
-        
         yyparse();
-        
     }
-	fclose(yyin);
-        return 0;
+
+    fclose(yyin);
+    return 0;
 }
+
 int yyerror(void)
-     {
-       printf("Error Sintactico\n");
-	 exit (1);
-     }
+{
+    fprintf(stderr, "\nError Sintactico en la línea %d\n.", yylineno);
+    exit(1);
+}

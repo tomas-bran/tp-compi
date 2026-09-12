@@ -5,8 +5,6 @@
 #include "y.tab.h"
 char *yyltext;
 
-
-
 typedef struct {
     char *palabra;
     int   token;
@@ -51,8 +49,8 @@ DIGITO			[0-9]
 LETRA			[a-zA-Z]
 ESPACIO         [ \t\n]+
 
-CTE_INT			{DIGITO}+
-CTE_FLOAT		{DIGITO}+"."{DIGITO}+
+CTE_INT_POSITIVA	{DIGITO}+
+CTE_FLOAT_POSITIVA	{DIGITO}+"."{DIGITO}+
 CTE_STRING		\"({LETRA}|{DIGITO}|{ESPACIO})*\"
 ID			{LETRA}({LETRA}|{DIGITO})*
 
@@ -74,76 +72,78 @@ OP_MEN_IG		"<="
 OP_MAY_IG		">="
 OP_DIF			"!="
 OP_POT			"**"
-OP_SPACESHIP		"<=>"
+OP_SPACESHIP	"<=>"
 OP_RANGO		".."
 
 %%
 
 "#+"([^+]|"+"[^#])*"+#"	{ /* comentario: se descarta, no genera token */ }
 
-{CTE_FLOAT}		{
+{CTE_FLOAT_POSITIVA}	{
                     double valor = atof(yytext);
+
                     if (valor > 3.4028235e38) {
-                        printf("\nERROR LEXICO: Constante Float fuera de cota: %s\n", yytext);
+                        printf("\nError Léxico: Constante Float fuera de cota: %s en la línea %d\n", yytext, yylineno);
                         exit(0);
                     }
-                    printf("\nConstante Float: %s\n", yytext);
-                    return CTE_FLOAT;
+                    printf("\nConstante Float: %s en la línea %d\n", yytext, yylineno);
+                    return CTE_FLOAT_POSITIVA;
                 }
-{CTE_INT}		{
-                    long valor = atol(yytext);
+{CTE_INT_POSITIVA}	{
+                    long valor = atoi(yytext);
+
                     if (valor > 32767) {
-                        printf("\nERROR LEXICO: Constante Int fuera de cota (max 32767): %s\n", yytext);
+                        printf("\nError Léxico: Constante Int fuera de cota (min -32768, max 32767): %s en la línea %d\n", yytext, yylineno);
                         exit(0);
                     }
-                    printf("\nConstante Int: %s\n", yytext);
-                    return CTE_INT;
+                    printf("\nConstante Int: %s en la línea %d\n", yytext, yylineno);
+                    return CTE_INT_POSITIVA;
                 }
 {CTE_STRING}		{
                     int longitud = strlen(yytext) - 2;
                     if (longitud > 50) {
-                        printf("\nERROR LEXICO: Constante String excede 50 caracteres: %s\n", yytext);
+                        printf("\nError Léxico: Constante String excede 50 caracteres: %s en la línea %d\n", yytext, yylineno);
                         exit(0);
                     }
-                    printf("\nConstante String: %s\n", yytext);
+                    printf("\nConstante String: %s en la línea %d\n", yytext, yylineno);
                     return CTE_STRING;
                 }
 
 {ID}			{int tok = buscar_reservada(yytext);
                     if (tok != -1) {
-                printf("\nPalabra reservada: %s\n", yytext);
+                printf("\nPalabra reservada: %s en la línea %d\n", yytext, yylineno);
                 return tok;
                      } else {
-                printf("\nIdentificador: %s\n", yytext);
+                printf("\nIdentificador: %s en la línea %d\n", yytext, yylineno);
                 return ID;
                     }}
 
-{OP_SPACESHIP}		{printf("\nSpaceship: %s\n", yytext);return OP_SPACESHIP;}
-{OP_MEN_IG}		{printf("\nMenorIgual: %s\n", yytext);return OP_MEN_IG;}
-{OP_MAY_IG}		{printf("\nMayorIgual: %s\n", yytext);return OP_MAY_IG;}
-{OP_IGUAL}		{printf("\nIgual: %s\n", yytext);return OP_IGUAL;}
-{OP_DIF}		{printf("\nDistinto: %s\n", yytext);return OP_DIF;}
-{OP_MENOR}		{printf("\nMenor: %s\n", yytext);return OP_MENOR;}
-{OP_MAYOR}		{printf("\nMayor: %s\n", yytext);return OP_MAYOR;}
+{OP_SPACESHIP}		{printf("\nSpaceship: %s en la línea %d\n", yytext, yylineno);return OP_SPACESHIP;}
+{OP_MEN_IG}		{printf("\nMenorIgual: %s en la línea %d\n", yytext, yylineno);return OP_MEN_IG;}
+{OP_MAY_IG}		{printf("\nMayorIgual: %s en la línea %d\n", yytext, yylineno);return OP_MAY_IG;}
+{OP_IGUAL}		{printf("\nIgual: %s en la línea %d\n", yytext, yylineno);return OP_IGUAL;}
+{OP_DIF}		{printf("\nDistinto: %s en la línea %d\n", yytext, yylineno);return OP_DIF;}
+{OP_MENOR}		{printf("\nMenor: %s en la línea %d\n", yytext, yylineno);return OP_MENOR;}
+{OP_MAYOR}		{printf("\nMayor: %s en la línea %d\n", yytext, yylineno);return OP_MAYOR;}
 
-{OP_ASIG}		{printf("\nAsignacion: %s\n", yytext);return OP_ASIG;}
-{OP_SUM}		{printf("\nSuma: %s\n", yytext);return OP_SUM;}
-{OP_MUL}		{printf("\nMultiplicacion: %s\n", yytext);return OP_MUL;}
-{OP_RES}		{printf("\nResta: %s\n", yytext);return OP_RES;}
-{OP_DIV}		{printf("\nDivision: %s\n", yytext);return OP_DIV;}
-{OP_POT}		{printf("\nPotencia: %s\n", yytext);return OP_POT;}
-{OP_RANGO}		{printf("\nRango: %s\n", yytext);return OP_RANGO;}
+{OP_ASIG}		{printf("\nAsignacion: %s en la línea %d\n", yytext, yylineno);return OP_ASIG;}
+{OP_SUM}		{printf("\nSuma: %s en la línea %d\n", yytext, yylineno);return OP_SUM;}
+{OP_MUL}		{printf("\nMultiplicacion: %s en la línea %d\n", yytext, yylineno);return OP_MUL;}
+{OP_RES}		{printf("\nResta: %s en la línea %d\n", yytext, yylineno);return OP_RES;}
+{OP_DIV}		{printf("\nDivision: %s en la línea %d\n", yytext, yylineno);return OP_DIV;}
+{OP_POT}		{printf("\nPotencia: %s en la línea %d\n", yytext, yylineno);return OP_POT;}
+{OP_RANGO}		{printf("\nRango: %s en la línea %d\n", yytext, yylineno);return OP_RANGO;}
 
-{PAR_AP}		{printf("\nParAbre: %s\n", yytext);return PAR_AP;}
-{PAR_CI}		{printf("\nParCierra: %s\n", yytext);return PAR_CI;}
-{DOS_PUNTOS}		{printf("\nDosPuntos: %s\n", yytext);return DOS_PUNTOS;}
-{COMA}			{printf("\nComa: %s\n", yytext);return COMA;}
-{LLAVE_AP}		{printf("\nLlaveAbre: %s\n", yytext);return LLAVE_AP;}
-{LLAVE_CI}		{printf("\nLlaveCierra: %s\n", yytext);return LLAVE_CI;}
+{PAR_AP}		{printf("\nParAbre: %s en la línea %d\n", yytext, yylineno);return PAR_AP;}
+{PAR_CI}		{printf("\nParCierra: %s en la línea %d\n", yytext, yylineno);return PAR_CI;}
+{DOS_PUNTOS}		{printf("\nDosPuntos: %s en la línea %d\n", yytext, yylineno);return DOS_PUNTOS;}
+{COMA}			{printf("\nComa: %s en la línea %d\n", yytext, yylineno);return COMA;}
+{LLAVE_AP}		{printf("\nLlaveAbre: %s en la línea %d\n", yytext, yylineno);return LLAVE_AP;}
+{LLAVE_CI}		{printf("\nLlaveCierra: %s en la línea %d\n", yytext, yylineno);return LLAVE_CI;}
 
 "\n"      		
 "\t"
 "\n\t"
 " "             		
 "\r\n"
-.			 { printf( "ERROR LEXICO : Caracter no reconocido: %s\n", yytext ); exit (0);}
+.			 { printf( "\nError Léxico : Caracter no reconocido: %s en la línea %d\n", yytext, yylineno ); exit (0);}
