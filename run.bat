@@ -4,7 +4,7 @@ bison -dyv Sintactico.y
 
 gcc.exe -std=gnu17 -fcommon lex.yy.c y.tab.c tabla_simbolos.c -o compilador.exe
 
-compilador.exe prueba.txt
+compilador.exe test.txt
 
 @echo off
 del compilador.exe

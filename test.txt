@@ -5,19 +5,22 @@ init {
     a, b, resultado : Float
     x, y, contador, limite : Int
     mensaje : String
+    mensaje2: String
 }
 
 #+ Asignaciones: se usa := y el valor debe ser compatible con el tipo declarado +#
-a := 10.5
-b := 10.5
-x := 5
-y := 5
+a := -340282350000000000000000000000000000000.0
+b := 340282350000000000000000000000000000000.0
+x := -32768
+y := 32767
 contador := 0
 limite := 3
-mensaje := "Inicio del programa"
+mensaje := "hola 567890123456789012345678901234567890123456789"
+mensaje2 := ""
 
 #+ Entrada y salida: write muestra un texto o variable, read carga un valor por teclado +#
 write(mensaje)
+write(mensaje2)
 write("esto es un ejemplo")
 read(x)
 
