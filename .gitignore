@@ -69,3 +69,6 @@ compilador
 .DS_Store
 Thumbs.db
 *.log
+
+contexto
+tests

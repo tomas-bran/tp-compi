@@ -1,0 +1,169 @@
+#+ Ejemplo general: recorre cada sentencia del lenguaje de forma practica +#
+
+#+ Declaracion de variables: init agrupa las variables por tipo +#
+init {
+    a, b, resultado : Float
+    x, y, contador, limite : Int
+    mensaje : String
+    mensaje2: String
+}
+
+#+ Asignaciones: se usa := y el valor debe ser compatible con el tipo declarado +#
+x := -32768
+y := 32767
+a := -3402823500000000000000000000000000000.0
+b := -3402823600000000000000000000000000000.0
+
+contador := 0
+limite := 3
+mensaje := "hola mundo"
+mensaje2 := ""
+
+#+ Entrada y salida: write muestra un texto o variable, read carga un valor por teclado +#
+write(mensaje)
+write(mensaje2)
+write("esto es un ejemplo")
+read(x)
+
+#+ Operaciones aritmeticas: +, -, *, / entre variables o constantes +#
+resultado := a + b
+resultado := resultado - 1
+resultado := resultado * 2
+resultado := resultado / y
+resultado := a + b - x * y / 2
+
+#+ Condicion simple: comparadores ==, <, >, <=, >=, != +#
+if (x > y)
+{
+    write("x es mayor que y")
+}
+
+#+ If / else: rama alternativa que se ejecuta cuando la condicion es falsa +#
+if (resultado >= 10)
+{
+    write("resultado alto")
+}
+else
+{
+    write("resultado bajo")
+}
+
+#+ Condicion multiple con AND: ambas condiciones simples deben cumplirse +#
+if (x > 0 AND y > 0)
+{
+    write("ambos valores son positivos")
+}
+
+#+ Condicion multiple con OR: alcanza con que se cumpla una de las dos +#
+if (x > 100 OR y > 100)
+{
+    write("alguno de los dos supera 100")
+}
+
+#+ Condicion con NOT: invierte el resultado de una condicion simple +#
+if (NOT x > y)
+{
+    write("x no es mayor que y")
+}
+
+#+ While: repite el bloque mientras la condicion sea verdadera +#
+while (contador < limite)
+{
+    write(contador)
+    contador := contador + 1
+}
+
+#+ Anidamiento: if dentro de otro if, para distinguir subcasos de una misma condicion +#
+if (x > 0)
+{
+    if (x > 10)
+    {
+        write("x es positivo y mayor a 10")
+    }
+    else
+    {
+        write("x es positivo pero menor o igual a 10")
+    }
+}
+
+#+ Anidamiento: while dentro de un if, se ejecuta solo si la condicion inicial se cumple +#
+if (contador < limite)
+{
+    while (contador < limite)
+    {
+        write("completando hasta el limite")
+        contador := contador + 1
+    }
+}
+
+#+ Anidamiento: if dentro de un while, evalua una condicion distinta en cada iteracion +#
+contador := 0
+while (contador < limite)
+{
+    if (contador == 0)
+    {
+        write("primera iteracion")
+    }
+    else
+    {
+        write("iteracion siguiente")
+    }
+    contador := contador + 1
+}
+
+#+ ============================================================
+   CASOS DE ERROR EN TIEMPO DE COMPILACION (comentados a proposito)
+   Para probar uno: sacarle los delimitadores y correr el compilador.
+   Cada uno corta la compilacion, por eso se prueban de a uno.
+   ============================================================ +#
+
+#+ ERROR LEXICO Int positiva fuera de cota: el maximo es 32767
+   (32768 solo es valido con signo menos, como -32768)
+   x := 32768 +#
+
+#+ ERROR LEXICO Int positiva fuera de cota: el maximo es 32767
+   x := 40000 +#
+
+#+ ERROR LEXICO Int negativa fuera de cota: el minimo es -32768
+   x := -32769 +#
+
+#+ ERROR LEXICO Float fuera de cota: el maximo es 3.4028235e38
+   a := 340282360000000000000000000000000000000.0 +#
+
+#+ ERROR LEXICO Float fuera de cota: el minimo es -3.4028235e38
+   a := -340282360000000000000000000000000000000.0 +#
+
+#+ ERROR LEXICO String de 51 caracteres: el maximo es 50
+   mensaje := "hola 5678901234567890123456789012345678901234567890" +#
+
+#+ ERROR LEXICO String con caracter no alfanumerico (la coma):
+   la comilla no llega a reconocerse como constante String
+   mensaje := "hola, mundo" +#
+
+ #+ ERROR LEXICO Caracter no reconocido: @ 
+   x := 5 @ 3 +#
+
+#+ ERROR SINTACTICO El bloque de declaracion es unico: no puede haber un segundo init 
+   init { z : Int } +#
+
+#+ ERROR SINTACTICO El if exige llaves: falta el bloque { }
+   if (x > y) write("sin llaves") +#
+
+#+ ERROR SINTACTICO Solo se admiten hasta dos condiciones simples ligadas por AND / OR
+   if (x > 0 AND y > 0 AND x < 10) { write("tres condiciones") } +#
+
+#+ ERROR SINTACTICO read recibe unicamente un identificador, no una expresion
+   read(x + 1) +#
+
+#+ ERROR SINTACTICO TE3: la comparacion de tres vias no es asociativa,
+   no se pueden encadenar dos <=> sin parentesis
+   x := a <=> b <=> c +#
+
+#+ ERROR SINTACTICO TE1: el patron debe ser una constante, no una variable
+   when (x) { is y { write("patron con variable") } } +#
+
+#+ ERROR SINTACTICO TE1: la estructura when necesita al menos una rama
+   when (x) { } +#
+
+#+ ERROR SINTACTICO TE1: la rama por defecto (else) no puede ir antes de otra rama
+   when (x) { else { write("defecto") } is 10 { write("diez") } } +#
