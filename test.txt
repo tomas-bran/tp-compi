@@ -25,7 +25,7 @@ write(mensaje2)
 write("esto es un ejemplo")
 read(x)
 
-#+ Operaciones aritmeticas: +, -, *, / entre variables o constantes +#
+#+ Operaciones aritmeticas: suman,resta,multiplicacion y division entre variables o constantes +#
 resultado := a + b
 resultado := resultado - 1
 resultado := resultado * 2
@@ -140,8 +140,8 @@ while (contador < limite)
    la comilla no llega a reconocerse como constante String
    mensaje := "hola, mundo" +#
 
- #+ ERROR LEXICO Caracter no reconocido: @ 
-   x := 5 @ 3 +#
+ #+ ERROR LEXICO Caracter no reconocido: (arroba) (reemplazar arroba por el simbolo)
+   x := 5 arroba 3 +#
 
 #+ ERROR SINTACTICO El bloque de declaracion es unico: no puede haber un segundo init 
    init { z : Int } +#
@@ -153,7 +153,7 @@ while (contador < limite)
    if (x > 0 AND y > 0 AND x < 10) { write("tres condiciones") } +#
 
 #+ ERROR SINTACTICO read recibe unicamente un identificador, no una expresion
-   read(x + 1) +#
+   read(x - 1) +#
 
 #+ ERROR SINTACTICO TE3: la comparacion de tres vias no es asociativa,
    no se pueden encadenar dos <=> sin parentesis
