@@ -34,6 +34,7 @@ static PalabraReservada tabla_reservadas[] = {
 
 static int espera_operando = 1;
 static int signo_unario_pendiente = 1;
+static int nivel_comentario = 0; //para saber si estoy dentro de un comentario multilinea
 
 static int buscar_reservada(const char *lexema)
 {
@@ -79,6 +80,7 @@ static int retornar_suma_resta(int token)
 
 %option noyywrap
 %option yylineno
+%x COMENTARIO
 
 DIGITO              [0-9]
 LETRA               [a-zA-Z]
@@ -107,12 +109,14 @@ OP_DIF              "!="
 OP_POT              "**"
 OP_SPACESHIP        "<=>"
 OP_RANGO            ".."
+COM_AP              "#+"
+COM_CI              "+#"
+
+COM_CHAR   [a-zA-Z0-9 \t\r\n\-+#*/(){}:,=<>!.\"]
+
 
 %%
 
-"#+"([^+]|"+"[^#])*"+#" {
-    /* El comentario se descarta. */
-}
 
 {CTE_FLOAT_POSITIVA} {
     char *fin;
@@ -314,6 +318,39 @@ OP_RANGO            ".."
 {LLAVE_CI} {
     printf("\nLlaveCierra: %s en la línea %d\n", yytext, yylineno);
     return retornar_inicio_operando(LLAVE_CI);
+}
+
+{COM_AP} {
+    nivel_comentario = 1;
+    BEGIN(COMENTARIO);
+}
+
+<COMENTARIO>{COM_AP} {
+    if (nivel_comentario >= 2) {
+        fprintf(stderr, "\nError Léxico: Comentario anidado a más de un nivel en la línea %d\n", yylineno);
+        exit(EXIT_FAILURE);
+    }
+    nivel_comentario++;
+}
+
+<COMENTARIO>{COM_CI} {
+    nivel_comentario--;
+    if (nivel_comentario == 0) {
+        BEGIN(INITIAL);
+    }
+}
+<COMENTARIO>{COM_CHAR} {
+    /* Caracter del alfabeto dentro de un comentario: se descarta. */
+}
+
+<COMENTARIO><<EOF>> {
+    fprintf(stderr, "\nError Léxico: Comentario sin cerrar (falta +#) al llegar al final del archivo.\n");
+    exit(EXIT_FAILURE);
+}
+
+<COMENTARIO>. {
+    fprintf(stderr, "\nError Léxico: Caracter no valido dentro de un comentario: %s en la línea %d\n", yytext, yylineno);
+    exit(EXIT_FAILURE);
 }
 
 [ \t\r\n]+ {
