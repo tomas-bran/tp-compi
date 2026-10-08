@@ -5,16 +5,24 @@
 #include <string.h>
 
 #define CAPACIDAD_INICIAL 64
+#define CAPACIDAD_PILA_INICIAL 16
 
 static char **celdas = NULL;
 static size_t cantidad = 0;
 static size_t capacidad = 0;
+
+static size_t *pila = NULL;
+static size_t tope = 0;
+static size_t capacidad_pila = 0;
 
 void polaca_inicializar(void)
 {
     celdas = NULL;
     cantidad = 0;
     capacidad = 0;
+    pila = NULL; 
+    tope = 0; 
+    capacidad_pila = 0;
 }
 
 void polaca_destruir(void)
@@ -26,6 +34,7 @@ void polaca_destruir(void)
         free(celdas[i]);
     }
     free(celdas);
+    free(pila);
     polaca_inicializar();
 }
 
@@ -80,4 +89,61 @@ int polaca_guardar_archivo(const char *ruta)
     }
 
     return fclose(archivo) == 0;
+}
+
+size_t polaca_avanzar(void)
+{
+    return polaca_insertar("");   /* celda en blanco, se completa después */
+}
+
+void polaca_escribir_en(size_t celda, size_t valor)
+{
+    char buffer[32];
+    char *nuevo;
+
+    if (celda >= cantidad)
+    {
+        fprintf(stderr, "Error interno: la celda %zu no existe en la polaca.\n", celda);
+        exit(EXIT_FAILURE);
+    }
+
+    snprintf(buffer, sizeof(buffer), "%zu", valor);
+    nuevo = malloc(strlen(buffer) + 1);
+    if (nuevo == NULL)
+    {
+        fprintf(stderr, "Error: no hay memoria para la polaca inversa.\n");
+        exit(EXIT_FAILURE);
+    }
+    strcpy(nuevo, buffer);
+
+    free(celdas[celda]);
+    celdas[celda] = nuevo;
+}
+
+void pila_apilar(size_t valor)
+{
+    if (tope == capacidad_pila)
+    {
+        size_t nueva = capacidad_pila == 0 ? CAPACIDAD_PILA_INICIAL : capacidad_pila * 2;
+        size_t *nuevas = realloc(pila, nueva * sizeof(size_t));
+
+        if (nuevas == NULL)
+        {
+            fprintf(stderr, "Error: no hay memoria para la pila de saltos.\n");
+            exit(EXIT_FAILURE);
+        }
+        pila = nuevas;
+        capacidad_pila = nueva;
+    }
+    pila[tope++] = valor;
+}
+
+size_t pila_desapilar(void)
+{
+    if (tope == 0)
+    {
+        fprintf(stderr, "Error interno: se intentó desapilar con la pila de saltos vacía.\n");
+        exit(EXIT_FAILURE);
+    }
+    return pila[--tope];
 }

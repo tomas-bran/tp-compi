@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "tabla_simbolos.h"
 #include "polaca.h"
 
@@ -120,6 +121,19 @@ static void verificar_comparacion(TipoDato izq, TipoDato der)
     }
 }
 
+static const char *salto_inverso(const char *op)
+{
+    if (strcmp(op, ">=") == 0) return "BLT";
+    if (strcmp(op, ">")  == 0) return "BLE";
+    if (strcmp(op, "<=") == 0) return "BGT";
+    if (strcmp(op, "<")  == 0) return "BGE";
+    if (strcmp(op, "==") == 0) return "BNE";
+    if (strcmp(op, "!=") == 0) return "BEQ";
+
+    fprintf(stderr, "Error interno: comparador desconocido %s.\n", op);
+    exit(EXIT_FAILURE);
+}
+
 static void asignar_tipo_pendientes(TipoDato tipo)
 {
     int i;
@@ -163,6 +177,7 @@ static void asignar_tipo_pendientes(TipoDato tipo)
 %token OP_POT OP_SPACESHIP
 
 %type <tipo> tipo expresion exp_aritmetica termino unario potencia atomo
+%type <str> comparador
 %%
 
     programa
@@ -225,7 +240,12 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     ;
 
     seleccion
-    : IF PAR_AP condicion PAR_CI bloque { regla("seleccion_if"); }
+    : IF PAR_AP condicion PAR_CI bloque
+      {
+          size_t x = pila_desapilar();
+          polaca_escribir_en(x, polaca_actual());
+          regla("seleccion_if");
+      }
     | IF PAR_AP condicion PAR_CI bloque ELSE bloque { regla("seleccion_if_else"); }
     ;
 
@@ -246,17 +266,24 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     ;
 
     cond_simple
-    : expresion comparador expresion { verificar_comparacion($1, $3); regla("condicion_simple"); }
+    : expresion comparador expresion
+      {
+          verificar_comparacion($1, $3);
+          polaca_insertar("CMP");
+          polaca_insertar(salto_inverso($2));
+          pila_apilar(polaca_avanzar());   // reserva la celda del destino y guarda su nº 
+          regla("condicion_simple");
+      }
     | PAR_AP cond_simple PAR_CI
     ;
 
     comparador
-    : OP_IGUAL { regla("comparador_igual"); }
-    | OP_DIF { regla("comparador_distinto"); }
-    | OP_MENOR { regla("comparador_menor"); }
-    | OP_MAYOR { regla("comparador_mayor"); }
-    | OP_MEN_IG { regla("comparador_menor_igual"); }
-    | OP_MAY_IG { regla("comparador_mayor_igual"); }
+    : OP_IGUAL  { $$ = "=="; regla("comparador_igual"); }
+    | OP_DIF    { $$ = "!="; regla("comparador_distinto"); }
+    | OP_MENOR  { $$ = "<";  regla("comparador_menor"); }
+    | OP_MAYOR  { $$ = ">";  regla("comparador_mayor"); }
+    | OP_MEN_IG { $$ = "<="; regla("comparador_menor_igual"); }
+    | OP_MAY_IG { $$ = ">="; regla("comparador_mayor_igual"); }
     ;
 
     seleccion_patrones
