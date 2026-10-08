@@ -138,6 +138,7 @@ COM_CHAR   [a-zA-Z0-9 \t\r\n\-+#*/(){}:,=<>!.\"]
     }
 
     printf("\nConstante Float: %s%s en la línea %d\n", es_negativa ? "-" : "", yytext, yylineno);
+    yylval.str = strdup(yytext);
     return retornar_valor(CTE_FLOAT_POSITIVA);
 }
 
@@ -170,6 +171,7 @@ COM_CHAR   [a-zA-Z0-9 \t\r\n\-+#*/(){}:,=<>!.\"]
     }
 
     printf("\nConstante Int: %s%s en la línea %d\n", es_negativa ? "-" : "", yytext, yylineno);
+    yylval.str = strdup(yytext);
     return retornar_valor(CTE_INT_POSITIVA);
 }
 
@@ -200,6 +202,7 @@ COM_CHAR   [a-zA-Z0-9 \t\r\n\-+#*/(){}:,=<>!.\"]
 
     free(valor);
     printf("\nConstante String: %s en la línea %d\n", yytext, yylineno);
+    yylval.str = strdup(yytext);
     return retornar_valor(CTE_STRING);
 }
 
@@ -217,6 +220,7 @@ COM_CHAR   [a-zA-Z0-9 \t\r\n\-+#*/(){}:,=<>!.\"]
     }
 
     printf("\nIdentificador: %s en la línea %d\n", yytext, yylineno);
+    yylval.str = strdup(yytext);
     return retornar_valor(ID);
 }
 

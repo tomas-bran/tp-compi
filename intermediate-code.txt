@@ -1,0 +1,136 @@
+0: 32768
+1: NEG
+2: x
+3: :=
+4: 32767
+5: y
+6: :=
+7: 3402823500000000000000000000000000000.0
+8: NEG
+9: a
+10: :=
+11: 3402823600000000000000000000000000000.0
+12: NEG
+13: b
+14: :=
+15: 0
+16: contador
+17: :=
+18: 3
+19: limite
+20: :=
+21: "hola mundo"
+22: mensaje
+23: :=
+24: ""
+25: mensaje2
+26: :=
+27: mensaje
+28: WRITE
+29: mensaje2
+30: WRITE
+31: "esto es un ejemplo"
+32: WRITE
+33: x
+34: READ
+35: a
+36: b
+37: +
+38: resultado
+39: :=
+40: resultado
+41: 1
+42: -
+43: resultado
+44: :=
+45: resultado
+46: 2
+47: *
+48: resultado
+49: :=
+50: resultado
+51: y
+52: /
+53: resultado
+54: :=
+55: a
+56: b
+57: +
+58: x
+59: y
+60: *
+61: 2
+62: /
+63: -
+64: resultado
+65: :=
+66: x
+67: y
+68: "x es mayor que y"
+69: WRITE
+70: resultado
+71: 10
+72: "resultado alto"
+73: WRITE
+74: "resultado bajo"
+75: WRITE
+76: x
+77: 0
+78: y
+79: 0
+80: "ambos valores son positivos"
+81: WRITE
+82: x
+83: 100
+84: y
+85: 100
+86: "alguno de los dos supera 100"
+87: WRITE
+88: x
+89: y
+90: "x no es mayor que y"
+91: WRITE
+92: contador
+93: limite
+94: contador
+95: WRITE
+96: contador
+97: 1
+98: +
+99: contador
+100: :=
+101: x
+102: 0
+103: x
+104: 10
+105: "x es positivo y mayor a 10"
+106: WRITE
+107: "x es positivo pero menor o igual a 10"
+108: WRITE
+109: contador
+110: limite
+111: contador
+112: limite
+113: "completando hasta el limite"
+114: WRITE
+115: contador
+116: 1
+117: +
+118: contador
+119: :=
+120: 0
+121: contador
+122: :=
+123: contador
+124: limite
+125: contador
+126: 0
+127: "primera iteracion"
+128: WRITE
+129: "iteracion siguiente"
+130: WRITE
+131: contador
+132: 1
+133: +
+134: contador
+135: :=
