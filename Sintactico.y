@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tabla_simbolos.h"
+#include "polaca.h"
 
 extern FILE *yyin;
 extern char *yytext;
@@ -16,7 +17,11 @@ static void regla(const char *nombre)
 }
 %}
 
-%token CTE_INT_POSITIVA CTE_FLOAT_POSITIVA CTE_STRING ID
+%union {
+    char *str;
+}
+
+%token <str> CTE_INT_POSITIVA CTE_FLOAT_POSITIVA CTE_STRING ID
 %token OP_ASIG OP_SUM OP_MUL OP_RES OP_DIV
 %token PAR_AP PAR_CI
 
@@ -86,15 +91,15 @@ static void regla(const char *nombre)
     ;
 
     asignacion
-    : ID OP_ASIG expresion { regla("asignacion"); }
+    : ID OP_ASIG expresion { polaca_insertar($1); polaca_insertar(":="); free($1); regla("asignacion"); }
     ;
 
     lectura
-    : READ PAR_AP ID PAR_CI { regla("lectura"); }
+    : READ PAR_AP ID PAR_CI { polaca_insertar($3); polaca_insertar("READ"); free($3); regla("lectura"); }
     ;
 
     escritura
-    : WRITE PAR_AP expresion PAR_CI { regla("escritura"); }
+    : WRITE PAR_AP expresion PAR_CI { polaca_insertar("WRITE"); regla("escritura"); }
     ;
 
     seleccion
@@ -175,19 +180,19 @@ static void regla(const char *nombre)
 
     exp_aritmetica
     : termino
-    | exp_aritmetica OP_SUM termino { regla("suma"); }
-    | exp_aritmetica OP_RES termino { regla("resta"); }
+    | exp_aritmetica OP_SUM termino {polaca_insertar("+"); regla("suma"); }
+    | exp_aritmetica OP_RES termino {polaca_insertar("-"); regla("resta"); }
     ;
 
     termino
     : unario
-    | termino OP_MUL unario { regla("multiplicacion"); }
-    | termino OP_DIV unario { regla("division"); }
+    | termino OP_MUL unario {polaca_insertar("*"); regla("multiplicacion"); }
+    | termino OP_DIV unario {polaca_insertar("/"); regla("division"); }
     ;
 
     unario
     : potencia
-    | OP_RES unario { regla("negacion"); }
+    | OP_RES unario { polaca_insertar("NEG"); regla("negacion"); }
     | OP_SUM unario { regla("positivo"); }
     ;
 
@@ -197,10 +202,10 @@ static void regla(const char *nombre)
     ;
 
     atomo
-    : ID
-    | CTE_INT_POSITIVA
-    | CTE_FLOAT_POSITIVA
-    | CTE_STRING
+    : ID { polaca_insertar($1); free($1); }
+    | CTE_INT_POSITIVA { polaca_insertar($1); free($1); }
+    | CTE_FLOAT_POSITIVA { polaca_insertar($1); free($1); }
+    | CTE_STRING { polaca_insertar($1); free($1); }
     | PAR_AP expresion PAR_CI
     ;
 
@@ -216,9 +221,11 @@ int main(int argc, char *argv[])
     }
 
     ts_inicializar(&tabla_simbolos);
+    polaca_inicializar();
 
     if (!ts_guardar_archivo(&tabla_simbolos, "symbol-table.txt")) {
         ts_destruir(&tabla_simbolos);
+        polaca_destruir();
         return EXIT_FAILURE;
     }
 
@@ -227,18 +234,23 @@ int main(int argc, char *argv[])
     if (yyin == NULL) {
         fprintf(stderr, "\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
         ts_destruir(&tabla_simbolos);
+        polaca_destruir();
         return EXIT_FAILURE;
     }
 
     resultado_parser = yyparse();
     fclose(yyin);
 
-    if (resultado_parser == 0 && !ts_guardar_archivo(&tabla_simbolos, "symbol-table.txt")) {
+    if (resultado_parser == 0 &&
+        (!ts_guardar_archivo(&tabla_simbolos, "symbol-table.txt") ||
+         !polaca_guardar_archivo("intermediate-code.txt"))) {
         ts_destruir(&tabla_simbolos);
+        polaca_destruir();
         return EXIT_FAILURE;
     }
 
     ts_destruir(&tabla_simbolos);
+    polaca_destruir();
     return resultado_parser == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
