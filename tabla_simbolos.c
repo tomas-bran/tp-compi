@@ -226,6 +226,31 @@ size_t ts_insertar_constante(
     return tabla->cantidad - 1;
 }
 
+TipoDato ts_obtener_tipo(const TablaSimbolos *tabla, const char *nombre)
+{
+    size_t indice = buscar_identificador(tabla, nombre);
+
+    if (indice == TS_INDICE_INVALIDO)
+    {
+        return TD_DESCONOCIDO;
+    }
+
+    return tabla->simbolos[indice].tipo;
+}
+
+int ts_asignar_tipo(TablaSimbolos *tabla, const char *nombre, TipoDato tipo)
+{
+    size_t indice = buscar_identificador(tabla, nombre);
+
+    if (indice == TS_INDICE_INVALIDO)
+    {
+        return 0;
+    }
+
+    tabla->simbolos[indice].tipo = tipo;
+    return 1;
+}
+
 int ts_guardar_archivo(const TablaSimbolos *tabla, const char *ruta)
 {
     FILE *archivo;

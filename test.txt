@@ -167,3 +167,59 @@ while (contador < limite)
 
 #+ ERROR SINTACTICO TE1: la rama por defecto (else) no puede ir antes de otra rama
    when (x) { else { write("defecto") } is 10 { write("diez") } } +#
+
+   #+ ERROR SEMANTICO Variable no declarada como destino de una asignacion 
+   z := 1 +#
+
+#+ ERROR SEMANTICO Variable no declarada dentro de una expresion
+   x := w + 1 +#
+
+#+ ERROR SEMANTICO Variable no declarada en un read
+   read(q) +#
+
+#+ ERROR SEMANTICO Variable declarada dos veces en lineas distintas:
+   agregar esta linea dentro del init, ya que x esta declarada como Int
+   x : Float +#
+
+#+ ERROR SEMANTICO Variable declarada dos veces en la misma linea:
+   agregar esta linea dentro del init
+   m, m : Int +#
+
+#+ ERROR SEMANTICO Operando String en una operacion aritmetica
+   x := "hola" + 1 +#
+
+#+ ERROR SEMANTICO Variable String como operando de una multiplicacion
+   x := mensaje * 2 +#
+
+#+ ERROR SEMANTICO Negacion de un String
+   x := -mensaje +#
+
+#+ ERROR SEMANTICO Asignacion de constante Float a variable Int (id con cte)
+   x := 2.5 +#
+
+#+ ERROR SEMANTICO Asignacion de variable Float a variable Int (id con id)
+   x := resultado +#
+
+#+ ERROR SEMANTICO Asignacion de constante Int a variable String (id con cte)
+   mensaje := 1 +#
+
+#+ ERROR SEMANTICO Asignacion de variable String a variable Int (id con id)
+   x := mensaje +#
+
+#+ ERROR SEMANTICO Asignacion de constante String a variable Float
+   a := "hola" +#
+
+#+ ERROR SEMANTICO Comparacion entre Int y String en una condicion
+   if (x > mensaje) { write("tipos distintos") } +#
+
+#+ ERROR SEMANTICO Comparacion entre String y constante Int
+   if (mensaje == 1) { write("tipos distintos") } +#
+
+#+ ERROR SEMANTICO Tipos distintos en la segunda condicion de un AND
+   if (x > 0 AND mensaje == 1) { write("tipos distintos") } +#
+
+#+ ERROR SEMANTICO Comparacion entre Float y String dentro de un while
+   while (a < "hola") { write("tipos distintos") } +#
+
+#+ NOTA: se permite comparar Int con Float (y asignar Int a Float) porque el Int
+   se ensancha a Float sin perder informacion. Lo inverso (Float a Int) es error +#
