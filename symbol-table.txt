@@ -1,14 +1,14 @@
 NOMBRE                                   | TIPODATO   | VALOR                                   | LONGITUD
 ----------------------------------------------------------------------------------------------------------
-a                                        |            |                                         |         
-b                                        |            |                                         |         
-resultado                                |            |                                         |         
-x                                        |            |                                         |         
-y                                        |            |                                         |         
-contador                                 |            |                                         |         
-limite                                   |            |                                         |         
-mensaje                                  |            |                                         |         
-mensaje2                                 |            |                                         |         
+a                                        | Float      |                                         |         
+b                                        | Float      |                                         |         
+resultado                                | Float      |                                         |         
+x                                        | Int        |                                         |         
+y                                        | Int        |                                         |         
+contador                                 | Int        |                                         |         
+limite                                   | Int        |                                         |         
+mensaje                                  | String     |                                         |         
+mensaje2                                 | String     |                                         |         
 _32768                                   | Cte_Int    | 32768                                   |         
 _32767                                   | Cte_Int    | 32767                                   |         
 _3402823500000000000000000000000000000.0 | Cte_Float  | 3402823500000000000000000000000000000.0 |         

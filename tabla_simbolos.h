@@ -53,5 +53,7 @@ size_t ts_insertar_constante(
 );
 
 int ts_guardar_archivo(const TablaSimbolos *tabla, const char *ruta);
+int ts_asignar_tipo(TablaSimbolos *tabla, const char *nombre, TipoDato tipo);
+TipoDato ts_obtener_tipo(const TablaSimbolos *tabla, const char *nombre);
 
 #endif
