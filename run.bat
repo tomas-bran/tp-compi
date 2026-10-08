@@ -4,7 +4,7 @@ bison -dyv Sintactico.y
 
 gcc.exe -std=gnu11 -fcommon lex.yy.c y.tab.c tabla_simbolos.c polaca.c -o compilador.exe
 
-compilador.exe test.txt
+compilador.exe test_polaca.txt
 
 @echo off
 del compilador.exe
