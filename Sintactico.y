@@ -264,7 +264,26 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     ;
 
     iteracion
-    : WHILE PAR_AP condicion PAR_CI bloque { regla("iteracion_while"); }
+    : WHILE
+      {
+          pila_apilar(polaca_actual());     // nº de celda donde va a estar el ET
+          polaca_insertar("ET");            // etiqueta de inicio del ciclo
+      }
+      PAR_AP condicion PAR_CI bloque
+      {
+          size_t z = pila_desapilar();                    // celda del salto de salida (la reservó la condición)
+          size_t et;
+          size_t celda_destino;
+
+          polaca_insertar("BI");                          // salto incondicional al inicio
+          polaca_escribir_en(z, polaca_actual() + 1);     // salida: primera celda después del BI y su destino
+
+          et = pila_desapilar();                          // celda del ET
+          celda_destino = polaca_avanzar();               // celda que lleva el destino del BI
+          polaca_escribir_en(celda_destino, et);          // vuelve al ET
+
+          regla("iteracion_while");
+      }
     ;
 
     condicion
