@@ -134,6 +134,30 @@ static const char *salto_inverso(const char *op)
     exit(EXIT_FAILURE);
 }
 
+static const char *invertir_salto(const char *salto)
+{
+    if (strcmp(salto, "BGE") == 0) return "BLT";
+    if (strcmp(salto, "BLT") == 0) return "BGE";
+    if (strcmp(salto, "BLE") == 0) return "BGT";
+    if (strcmp(salto, "BGT") == 0) return "BLE";
+    if (strcmp(salto, "BNE") == 0) return "BEQ";
+    if (strcmp(salto, "BEQ") == 0) return "BNE";
+
+    fprintf(stderr, "Error interno: salto desconocido %s.\n", salto);
+    exit(EXIT_FAILURE);
+}
+
+//desapila 'cantidad' saltos pendientes y los completa con el mismo destino 
+static void completar_saltos(int cantidad, size_t destino)
+{
+    int i;
+
+    for (i = 0; i < cantidad; i++)
+    {
+        polaca_escribir_en(pila_desapilar(), destino);
+    }
+}
+
 static void asignar_tipo_pendientes(TipoDato tipo)
 {
     int i;
@@ -154,6 +178,8 @@ static void asignar_tipo_pendientes(TipoDato tipo)
 %union {
     char *str;
     int tipo;
+    int cant;
+
 }
 
 %token <str> CTE_INT_POSITIVA CTE_FLOAT_POSITIVA CTE_STRING ID
@@ -178,6 +204,7 @@ static void asignar_tipo_pendientes(TipoDato tipo)
 
 %type <tipo> tipo expresion exp_aritmetica termino unario potencia atomo
 %type <str> comparador
+%type <cant> condicion cond_compuesta
 %%
 
     programa
@@ -242,16 +269,14 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     seleccion
     : IF PAR_AP condicion PAR_CI bloque
       {
-          size_t x = pila_desapilar();
-          polaca_escribir_en(x, polaca_actual());
+          completar_saltos($3, polaca_actual());
           regla("seleccion_if");
       }
     | IF PAR_AP condicion PAR_CI bloque
       {
           // Fin del bloque verdadero 
-          size_t x = pila_desapilar();                  // celda del salto de la condición
           polaca_insertar("BI");                        // salto incondicional para saltear el else
-          polaca_escribir_en(x, polaca_actual() + 1);   // la condición falsa cae después del BI y su celda reservada
+          completar_saltos($3, polaca_actual() + 1);
           pila_apilar(polaca_avanzar());                // reserva la celda del destino del BI
       }
       ELSE bloque
@@ -271,12 +296,11 @@ static void asignar_tipo_pendientes(TipoDato tipo)
       }
       PAR_AP condicion PAR_CI bloque
       {
-          size_t z = pila_desapilar();                    // celda del salto de salida (la reservó la condición)
           size_t et;
           size_t celda_destino;
 
           polaca_insertar("BI");                          // salto incondicional al inicio
-          polaca_escribir_en(z, polaca_actual() + 1);     // salida: primera celda después del BI y su destino
+          completar_saltos($4, polaca_actual() + 1); 
 
           et = pila_desapilar();                          // celda del ET
           celda_destino = polaca_avanzar();               // celda que lleva el destino del BI
@@ -287,15 +311,38 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     ;
 
     condicion
-    : cond_simple
-    | cond_compuesta
-    | PAR_AP cond_compuesta PAR_CI
+    : cond_simple                   { $$ = 1; }
+    | cond_compuesta                { $$ = $1; }
+    | PAR_AP cond_compuesta PAR_CI  { $$ = $2; }
     ;
 
     cond_compuesta
-    : cond_simple AND cond_simple { regla("condicion_and"); }
-    | cond_simple OR cond_simple { regla("condicion_or"); }
-    | NOT cond_simple { regla("condicion_not"); }
+    : cond_simple AND cond_simple
+      {
+          $$ = 2;                                   //los dos saltos van al falso 
+          regla("condicion_and");
+      }
+    | cond_simple OR cond_simple
+      {
+          size_t segundo = pila_desapilar();
+          size_t primero = pila_desapilar();
+
+          // la celda del mnemonico es la anterior a la del destino
+          polaca_reemplazar(primero - 1, invertir_salto(polaca_obtener(primero - 1)));
+          polaca_escribir_en(primero, polaca_actual());   // si se cumple la 1ra, va al bloque verdadero
+          pila_apilar(segundo);                           // queda pendiente solo el salto al falso
+          $$ = 1;
+          regla("condicion_or");
+      }
+    | NOT cond_simple
+      {
+          size_t celda = pila_desapilar();
+
+          polaca_reemplazar(celda - 1, invertir_salto(polaca_obtener(celda - 1)));
+          pila_apilar(celda);
+          $$ = 1;
+          regla("condicion_not");
+      }
     ;
 
     cond_simple
