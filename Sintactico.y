@@ -246,7 +246,21 @@ static void asignar_tipo_pendientes(TipoDato tipo)
           polaca_escribir_en(x, polaca_actual());
           regla("seleccion_if");
       }
-    | IF PAR_AP condicion PAR_CI bloque ELSE bloque { regla("seleccion_if_else"); }
+    | IF PAR_AP condicion PAR_CI bloque
+      {
+          // Fin del bloque verdadero 
+          size_t x = pila_desapilar();                  // celda del salto de la condición
+          polaca_insertar("BI");                        // salto incondicional para saltear el else
+          polaca_escribir_en(x, polaca_actual() + 1);   // la condición falsa cae después del BI y su celda reservada
+          pila_apilar(polaca_avanzar());                // reserva la celda del destino del BI
+      }
+      ELSE bloque
+      {
+          // Fin del bloque falso
+          size_t x = pila_desapilar();                  // celda del BI
+          polaca_escribir_en(x, polaca_actual());       // primera celda posterior al else
+          regla("seleccion_if_else");
+      }
     ;
 
     iteracion
