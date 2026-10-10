@@ -120,6 +120,39 @@ void polaca_escribir_en(size_t celda, size_t valor)
     celdas[celda] = nuevo;
 }
 
+const char *polaca_obtener(size_t celda)
+{
+    if (celda >= cantidad)
+    {
+        fprintf(stderr, "Error interno: la celda %zu no existe en la polaca.\n", celda);
+        exit(EXIT_FAILURE);
+    }
+    return celdas[celda];
+}
+
+void polaca_reemplazar(size_t celda, const char *token)
+{
+    size_t longitud = strlen(token) + 1;
+    char *nuevo;
+
+    if (celda >= cantidad)
+    {
+        fprintf(stderr, "Error interno: la celda %zu no existe en la polaca.\n", celda);
+        exit(EXIT_FAILURE);
+    }
+
+    nuevo = malloc(longitud);
+    if (nuevo == NULL)
+    {
+        fprintf(stderr, "Error: no hay memoria para la polaca inversa.\n");
+        exit(EXIT_FAILURE);
+    }
+    memcpy(nuevo, token, longitud);
+
+    free(celdas[celda]);
+    celdas[celda] = nuevo;
+}
+
 void pila_apilar(size_t valor)
 {
     if (tope == capacidad_pila)

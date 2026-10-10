@@ -1,8 +1,35 @@
-NOMBRE | TIPODATO | VALOR | LONGITUD
-------------------------------------
-a      | Int      |       |         
-b      | Int      |       |         
-c      | Int      |       |         
-l      | Int      |       |         
-_3     | Cte_Int  | 3     |         
-_1     | Cte_Int  | 1     |         
+NOMBRE                                   | TIPODATO   | VALOR                                   | LONGITUD
+----------------------------------------------------------------------------------------------------------
+a                                        | Float      |                                         |         
+b                                        | Float      |                                         |         
+resultado                                | Float      |                                         |         
+x                                        | Int        |                                         |         
+y                                        | Int        |                                         |         
+contador                                 | Int        |                                         |         
+limite                                   | Int        |                                         |         
+mensaje                                  | String     |                                         |         
+mensaje2                                 | String     |                                         |         
+_32768                                   | Cte_Int    | 32768                                   |         
+_32767                                   | Cte_Int    | 32767                                   |         
+_3402823500000000000000000000000000000.0 | Cte_Float  | 3402823500000000000000000000000000000.0 |         
+_3402823600000000000000000000000000000.0 | Cte_Float  | 3402823600000000000000000000000000000.0 |         
+_0                                       | Cte_Int    | 0                                       |         
+_3                                       | Cte_Int    | 3                                       |         
+_hola mundo                              | Cte_String | hola mundo                              | 10      
+_                                        | Cte_String |                                         | 0       
+_esto es un ejemplo                      | Cte_String | esto es un ejemplo                      | 18      
+_1                                       | Cte_Int    | 1                                       |         
+_2                                       | Cte_Int    | 2                                       |         
+_x es mayor que y                        | Cte_String | x es mayor que y                        | 16      
+_10                                      | Cte_Int    | 10                                      |         
+_resultado alto                          | Cte_String | resultado alto                          | 14      
+_resultado bajo                          | Cte_String | resultado bajo                          | 14      
+_ambos valores son positivos             | Cte_String | ambos valores son positivos             | 27      
+_100                                     | Cte_Int    | 100                                     |         
+_alguno de los dos supera 100            | Cte_String | alguno de los dos supera 100            | 28      
+_x no es mayor que y                     | Cte_String | x no es mayor que y                     | 19      
+_x es positivo y mayor a 10              | Cte_String | x es positivo y mayor a 10              | 26      
+_x es positivo pero menor o igual a 10   | Cte_String | x es positivo pero menor o igual a 10   | 37      
+_completando hasta el limite             | Cte_String | completando hasta el limite             | 27      
+_primera iteracion                       | Cte_String | primera iteracion                       | 17      
+_iteracion siguiente                     | Cte_String | iteracion siguiente                     | 19      
