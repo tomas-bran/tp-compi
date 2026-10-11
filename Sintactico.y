@@ -10,6 +10,17 @@ extern char *yytext;
 extern int yylineno;
 
 #define MAX_IDS_DECL 100
+#define MAX_WHEN_ANIDADOS 32
+#define MARCADOR_WHEN ((size_t)-1)
+
+typedef struct {
+    char aux[16];        // nombre de la auxiliar: "@aux1"
+    TipoDato tipo;       // tipo de la expresion de control
+} ContextoWhen;
+
+static ContextoWhen contextos_when[MAX_WHEN_ANIDADOS];
+static int nivel_when = 0;       // cuantos when hay abiertos (anidamiento)
+static int contador_aux = 0;     // numera las auxiliares: @aux1, @aux2, ...
 
 static char *ids_pendientes[MAX_IDS_DECL];
 static int cant_ids_pendientes = 0;
@@ -173,6 +184,44 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     }
     cant_ids_pendientes = 0;
 }
+
+static void abrir_when(TipoDato tipo_control)
+{
+    ContextoWhen *ctx;
+
+    if (nivel_when >= MAX_WHEN_ANIDADOS)
+    {
+        error_semantico_msg("Demasiados when anidados");
+    }
+
+    ctx = &contextos_when[nivel_when++];
+    contador_aux++;
+    snprintf(ctx->aux, sizeof(ctx->aux), "@aux%d", contador_aux);
+    ctx->tipo = tipo_control;
+
+    if (ts_insertar_auxiliar(&tabla_simbolos, ctx->aux, tipo_control) == TS_INDICE_INVALIDO)
+    {
+        fprintf(stderr, "\nError: no hay memoria para guardar la variable auxiliar %s\n", ctx->aux);
+            exit(EXIT_FAILURE);
+    }
+
+    polaca_insertar(ctx->aux);        // la expresion de control ya esta escrita: expr @aux :=
+    polaca_insertar(":=");
+    pila_apilar(MARCADOR_WHEN);       // marca donde empiezan los BI de este when
+}
+
+static void cerrar_when(void)
+{
+    size_t celda = pila_desapilar();
+
+    while (celda != MARCADOR_WHEN)
+    {
+        polaca_escribir_en(celda, polaca_actual());   // los BI van al final del when
+        celda = pila_desapilar();
+    }
+    nivel_when--;
+}
+
 %}
 
 %union {
@@ -368,8 +417,12 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     ;
 
     seleccion_patrones
-    : WHEN PAR_AP expresion PAR_CI LLAVE_AP lista_ramas LLAVE_CI { regla("when_sin_defecto"); }
-    | WHEN PAR_AP expresion PAR_CI LLAVE_AP lista_ramas rama_defecto LLAVE_CI { regla("when_con_defecto"); }
+    : cabecera_when LLAVE_AP lista_ramas LLAVE_CI                { cerrar_when(); regla("when_sin_defecto"); }
+    | cabecera_when LLAVE_AP lista_ramas rama_defecto LLAVE_CI   { cerrar_when(); regla("when_con_defecto"); }
+    ;
+
+    cabecera_when
+    : WHEN PAR_AP expresion PAR_CI { abrir_when($3); }
     ;
 
     lista_ramas
