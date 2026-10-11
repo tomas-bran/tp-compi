@@ -179,7 +179,7 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     char *str;
     int tipo;
     int cant;
-
+    struct { char *valor; int tipo; int negativa; } cte;
 }
 
 %token <str> CTE_INT_POSITIVA CTE_FLOAT_POSITIVA CTE_STRING ID
@@ -205,6 +205,7 @@ static void asignar_tipo_pendientes(TipoDato tipo)
 %type <tipo> tipo expresion exp_aritmetica termino unario potencia atomo
 %type <str> comparador
 %type <cant> condicion cond_compuesta
+%type <cte> constante cte_numerica
 %%
 
     programa
@@ -385,21 +386,34 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     ;
 
     patron
-    : IS constante { regla("patron_valor_exacto"); }
-    | IN constante OP_RANGO constante { regla("patron_rango"); }
-    | IS comparador constante { regla("patron_guarda"); }
+    : IS constante
+      {
+          free($2.valor);
+          regla("patron_valor_exacto");
+      }
+    | IN constante OP_RANGO constante
+      {
+          free($2.valor);
+          free($4.valor);
+          regla("patron_rango");
+      }
+    | IS comparador constante
+      {
+          free($3.valor);
+          regla("patron_guarda");
+      }
     ;
 
     constante
     : cte_numerica
-    | OP_RES cte_numerica { regla("constante_negativa"); }
-    | OP_SUM cte_numerica { regla("constante_positiva"); }
-    | CTE_STRING
+    | OP_RES cte_numerica { $$ = $2; $$.negativa = 1; regla("constante_negativa"); }
+    | OP_SUM cte_numerica { $$ = $2; regla("constante_positiva"); }
+    | CTE_STRING          { $$.valor = $1; $$.tipo = TD_STRING; $$.negativa = 0; }
     ;
 
     cte_numerica
-    : CTE_INT_POSITIVA
-    | CTE_FLOAT_POSITIVA
+    : CTE_INT_POSITIVA    { $$.valor = $1; $$.tipo = TD_INT;   $$.negativa = 0; }
+    | CTE_FLOAT_POSITIVA  { $$.valor = $1; $$.tipo = TD_FLOAT; $$.negativa = 0; }
     ;
 
     expresion
