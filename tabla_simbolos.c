@@ -226,6 +226,36 @@ size_t ts_insertar_constante(
     return tabla->cantidad - 1;
 }
 
+size_t ts_insertar_auxiliar(
+    TablaSimbolos *tabla,
+    const char *nombre,
+    TipoDato tipo)
+{
+    Simbolo *nuevo;
+
+    if (!asegurar_capacidad(tabla))
+    {
+        return TS_INDICE_INVALIDO;
+    }
+
+    nuevo = &tabla->simbolos[tabla->cantidad];
+    nuevo->nombre = duplicar_cadena(nombre);
+    nuevo->valor = NULL;
+
+    if (nuevo->nombre == NULL)
+    {
+        return TS_INDICE_INVALIDO;
+    }
+
+    nuevo->clase = CLASE_AUXILIAR;
+    nuevo->tipo = tipo;
+    nuevo->longitud = -1;
+    nuevo->linea = 0;
+
+    tabla->cantidad++;
+    return tabla->cantidad - 1;
+}
+
 TipoDato ts_obtener_tipo(const TablaSimbolos *tabla, const char *nombre)
 {
     size_t indice = buscar_identificador(tabla, nombre);
