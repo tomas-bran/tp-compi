@@ -10,6 +10,20 @@ extern char *yytext;
 extern int yylineno;
 
 #define MAX_IDS_DECL 100
+#define MAX_WHEN_ANIDADOS 32
+#define MARCADOR_WHEN ((size_t)-1)
+#define MAX_EXACTOS_WHEN 64
+
+typedef struct {
+    char aux[16];                      // nombre de la auxiliar: "@aux1"
+    TipoDato tipo;                     // tipo de la expresion de control
+    char *exactos[MAX_EXACTOS_WHEN];   // valores exactos ya usados en este when
+    int cant_exactos;
+} ContextoWhen;
+
+static ContextoWhen contextos_when[MAX_WHEN_ANIDADOS];
+static int nivel_when = 0;       // cuantos when hay abiertos (anidamiento)
+static int contador_aux = 0;     // numera las auxiliares: @aux1, @aux2, ...
 
 static char *ids_pendientes[MAX_IDS_DECL];
 static int cant_ids_pendientes = 0;
@@ -173,13 +187,125 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     }
     cant_ids_pendientes = 0;
 }
+
+static void abrir_when(TipoDato tipo_control)
+{
+    ContextoWhen *ctx;
+
+    if (nivel_when >= MAX_WHEN_ANIDADOS)
+    {
+        error_semantico_msg("Demasiados when anidados");
+    }
+
+    ctx = &contextos_when[nivel_when++];
+    contador_aux++;
+    snprintf(ctx->aux, sizeof(ctx->aux), "@aux%d", contador_aux);
+    ctx->tipo = tipo_control;
+    ctx->cant_exactos = 0;
+
+    if (ts_insertar_auxiliar(&tabla_simbolos, ctx->aux, tipo_control) == TS_INDICE_INVALIDO)
+    {
+        fprintf(stderr, "\nError: no hay memoria para guardar la variable auxiliar %s\n", ctx->aux);
+            exit(EXIT_FAILURE);
+    }
+
+    polaca_insertar(ctx->aux);        // la expresion de control ya esta escrita: expr @aux :=
+    polaca_insertar(":=");
+    pila_apilar(MARCADOR_WHEN);       // marca donde empiezan los BI de este when
+}
+
+static void cerrar_when(void)
+{
+    ContextoWhen *ctx = &contextos_when[nivel_when - 1];
+    size_t celda;
+    int i;
+
+    for (i = 0; i < ctx->cant_exactos; i++)
+    {
+        free(ctx->exactos[i]);
+    }
+
+    celda = pila_desapilar();
+    while (celda != MARCADOR_WHEN)
+    {
+        polaca_escribir_en(celda, polaca_actual());   // los BI van al final del when
+        celda = pila_desapilar();
+    }
+    nivel_when--;
+}
+
+static void verificar_patron(TipoDato tipo_patron)
+{
+    verificar_comparacion(contextos_when[nivel_when - 1].tipo, tipo_patron);
+}
+
+/* Emite: @aux valor [NEG] CMP salto [celda reservada] y apila la celda reservada */
+static void emitir_comparacion_patron(const char *valor, int negativa, const char *salto)
+{
+    polaca_insertar(contextos_when[nivel_when - 1].aux);
+    polaca_insertar(valor);
+    if (negativa)
+    {
+        polaca_insertar("NEG");
+    }
+    polaca_insertar("CMP");
+    polaca_insertar(salto);
+    pila_apilar(polaca_avanzar());
+}
+
+static double valor_numerico(const char *valor, int negativa)
+{
+    double v = atof(valor);
+    return negativa ? -v : v;
+}
+
+static void verificar_rango(const char *inf, int neg_inf, const char *sup, int neg_sup)
+{
+    if (valor_numerico(inf, neg_inf) > valor_numerico(sup, neg_sup))
+    {
+        error_semantico_msg("En un patron de rango el limite inferior no puede ser mayor que el superior");
+    }
+}
+
+static void registrar_exacto(const char *valor, int negativa)
+{
+    ContextoWhen *ctx = &contextos_when[nivel_when - 1];
+    char *texto;
+    int i;
+
+    texto = malloc(strlen(valor) + 2);
+    if (texto == NULL)
+    {
+        fprintf(stderr, "\nError: no hay memoria para validar los patrones del when\n");
+        exit(EXIT_FAILURE);
+    }
+    sprintf(texto, "%s%s", negativa ? "-" : "", valor);
+
+    for (i = 0; i < ctx->cant_exactos; i++)
+    {
+        int igual = (ctx->tipo == TD_STRING)
+                    ? strcmp(ctx->exactos[i], texto) == 0
+                    : atof(ctx->exactos[i]) == atof(texto);
+
+        if (igual)
+        {
+            error_semantico_msg("Hay dos ramas con el mismo patron de valor exacto en el mismo when");
+        }
+    }
+
+    if (ctx->cant_exactos >= MAX_EXACTOS_WHEN)
+    {
+        error_semantico_msg("Demasiadas ramas de valor exacto en un mismo when");
+    }
+    ctx->exactos[ctx->cant_exactos++] = texto;
+}
 %}
 
 %union {
     char *str;
     int tipo;
     int cant;
-
+    struct { char *valor; int tipo; int negativa; } cte;
 }
 
 %token <str> CTE_INT_POSITIVA CTE_FLOAT_POSITIVA CTE_STRING ID
@@ -204,7 +330,8 @@ static void asignar_tipo_pendientes(TipoDato tipo)
 
 %type <tipo> tipo expresion exp_aritmetica termino unario potencia atomo
 %type <str> comparador
-%type <cant> condicion cond_compuesta
+%type <cant> condicion cond_compuesta patron
+%type <cte> constante cte_numerica
 %%
 
     programa
@@ -367,8 +494,12 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     ;
 
     seleccion_patrones
-    : WHEN PAR_AP expresion PAR_CI LLAVE_AP lista_ramas LLAVE_CI { regla("when_sin_defecto"); }
-    | WHEN PAR_AP expresion PAR_CI LLAVE_AP lista_ramas rama_defecto LLAVE_CI { regla("when_con_defecto"); }
+    : cabecera_when LLAVE_AP lista_ramas LLAVE_CI                { cerrar_when(); regla("when_sin_defecto"); }
+    | cabecera_when LLAVE_AP lista_ramas rama_defecto LLAVE_CI   { cerrar_when(); regla("when_con_defecto"); }
+    ;
+
+    cabecera_when
+    : WHEN PAR_AP expresion PAR_CI { abrir_when($3); }
     ;
 
     lista_ramas
@@ -377,7 +508,13 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     ;
 
     rama
-    : patron bloque { regla("rama_when"); }
+    : patron bloque
+      {
+          polaca_insertar("BI");
+          completar_saltos($1, polaca_actual() + 1);   // si el patron no coincide, salta a la rama siguiente
+          pila_apilar(polaca_avanzar());               // reserva la celda del BI, se completa al cerrar el when
+          regla("rama_when");
+      }
     ;
 
     rama_defecto
@@ -385,21 +522,51 @@ static void asignar_tipo_pendientes(TipoDato tipo)
     ;
 
     patron
-    : IS constante { regla("patron_valor_exacto"); }
-    | IN constante OP_RANGO constante { regla("patron_rango"); }
-    | IS comparador constante { regla("patron_guarda"); }
+    : IS constante
+      {
+          verificar_patron($2.tipo);
+          registrar_exacto($2.valor, $2.negativa);
+          emitir_comparacion_patron($2.valor, $2.negativa, "BNE");
+          free($2.valor);
+          $$ = 1;
+          regla("patron_valor_exacto");
+      }
+    | IN constante OP_RANGO constante
+      {
+          if ($2.tipo == TD_STRING || $4.tipo == TD_STRING)
+          {
+              error_semantico_msg("Un rango no admite valores String");
+          }
+          verificar_patron($2.tipo);
+          verificar_patron($4.tipo);
+          verificar_rango($2.valor, $2.negativa, $4.valor, $4.negativa);
+          emitir_comparacion_patron($2.valor, $2.negativa, "BLT");
+          emitir_comparacion_patron($4.valor, $4.negativa, "BGT");
+          free($2.valor);
+          free($4.valor);
+          $$ = 2;
+          regla("patron_rango");
+      }
+    | IS comparador constante
+      {
+          verificar_patron($3.tipo);
+          emitir_comparacion_patron($3.valor, $3.negativa, salto_inverso($2));
+          free($3.valor);
+          $$ = 1;
+          regla("patron_guarda");
+      }
     ;
 
     constante
     : cte_numerica
-    | OP_RES cte_numerica { regla("constante_negativa"); }
-    | OP_SUM cte_numerica { regla("constante_positiva"); }
-    | CTE_STRING
+    | OP_RES cte_numerica { $$ = $2; $$.negativa = 1; regla("constante_negativa"); }
+    | OP_SUM cte_numerica { $$ = $2; regla("constante_positiva"); }
+    | CTE_STRING          { $$.valor = $1; $$.tipo = TD_STRING; $$.negativa = 0; }
     ;
 
     cte_numerica
-    : CTE_INT_POSITIVA
-    | CTE_FLOAT_POSITIVA
+    : CTE_INT_POSITIVA    { $$.valor = $1; $$.tipo = TD_INT;   $$.negativa = 0; }
+    | CTE_FLOAT_POSITIVA  { $$.valor = $1; $$.tipo = TD_FLOAT; $$.negativa = 0; }
     ;
 
     expresion

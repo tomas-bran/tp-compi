@@ -111,6 +111,99 @@ while (contador < limite)
     contador := contador + 1
 }
 
+#+ TE1 - Los tres tipos de patron en la misma estructura, con rama por defecto +#
+when (x)
+{
+    is 10 { write("diez") }
+    in 1 .. 9 { write("entre 1 y 9") }
+    is < 0 { write("negativo") }
+    else { write("otro valor") }
+}
+
+#+ TE1 - Patrones con constantes negativas +#
+when (y)
+{
+    is -10 { write("menos diez") }
+    in -5 .. -1 { write("entre menos 5 y menos 1") }
+    else { write("fuera de los rangos") }
+}
+
+#+ TE1 - Expresion de control compuesta, sin rama por defecto +#
+when (x + y * 2)
+{
+    is 0 { write("cero") }
+    in 1 .. 100 { write("hasta 100") }
+    is >= 101 { write("mas de 100") }
+}
+
+#+ TE1 - Patrones solapados: con contador = 16 gana la primera rama aunque la segunda tambien se cumple +#
+contador := 16
+when (contador)
+{
+    in 0 .. 17 { write("menor de edad") }
+    is > 15 { write("mayor de 15") }
+    else { write("adulto") }
+}
+
+#+ TE1 - Ninguna rama se satisface y no hay rama por defecto: no se ejecuta nada +#
+when (limite)
+{
+    is 100 { write("cien") }
+    in 200 .. 300 { write("entre 200 y 300") }
+}
+
+#+ TE1 - Control Float con patrones numericos, y control String con valor exacto +#
+when (a)
+{
+    is 2.5 { write("dos y medio") }
+    is > 100 { write("grande") }
+    else { write("otro float") }
+}
+
+when (mensaje)
+{
+    is "hola mundo" { write("saludo") }
+    else { write("otro texto") }
+}
+
+#+ TE1 - when anidado dentro de un while, con un if dentro de una rama +#
+contador := 0
+while (contador < limite)
+{
+    when (contador * 2)
+    {
+        in 0 .. 5 { write("bajo") }
+        is >= 6
+        {
+            if (contador == 4)
+            {
+                write("caso especial")
+            }
+            else
+            {
+                write("alto")
+            }
+        }
+        else { write("otro") }
+    }
+    contador := contador + 1
+}
+
+#+ TE1 - when dentro de otro when: cada uno usa su propia variable auxiliar +#
+when (x)
+{
+    is 1
+    {
+        when (y)
+        {
+            is 2 { write("x es 1 e y es 2") }
+            else { write("x es 1 e y no es 2") }
+        }
+    }
+    else { write("x no es 1") }
+}
+
+
 #+ ============================================================
    CASOS DE ERROR EN TIEMPO DE COMPILACION (comentados a proposito)
    Para probar uno: sacarle los delimitadores y correr el compilador.
@@ -167,6 +260,15 @@ while (contador < limite)
 
 #+ ERROR SINTACTICO TE1: la rama por defecto (else) no puede ir antes de otra rama
    when (x) { else { write("defecto") } is 10 { write("diez") } } +#
+
+#+ ERROR SEMANTICO TE1: en un patron de rango el limite inferior no puede ser mayor que el superior
+   when (x) { in 10 .. 5 { write("rango invertido") } } +#
+
+#+ ERROR SEMANTICO TE1: el tipo del patron debe coincidir con el de la expresion de control
+   when (x) { is "hola" { write("patron String sobre un Int") } } +#
+
+#+ ERROR SEMANTICO TE1: no puede haber dos ramas con el mismo patron de valor exacto
+   when (x) { is 3 { write("a") } is 3 { write("b") } } +#
 
    #+ ERROR SEMANTICO Variable no declarada como destino de una asignacion 
    z := 1 +#
