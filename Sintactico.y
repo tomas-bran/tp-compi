@@ -12,10 +12,13 @@ extern int yylineno;
 #define MAX_IDS_DECL 100
 #define MAX_WHEN_ANIDADOS 32
 #define MARCADOR_WHEN ((size_t)-1)
+#define MAX_EXACTOS_WHEN 64
 
 typedef struct {
-    char aux[16];        // nombre de la auxiliar: "@aux1"
-    TipoDato tipo;       // tipo de la expresion de control
+    char aux[16];                      // nombre de la auxiliar: "@aux1"
+    TipoDato tipo;                     // tipo de la expresion de control
+    char *exactos[MAX_EXACTOS_WHEN];   // valores exactos ya usados en este when
+    int cant_exactos;
 } ContextoWhen;
 
 static ContextoWhen contextos_when[MAX_WHEN_ANIDADOS];
@@ -198,6 +201,7 @@ static void abrir_when(TipoDato tipo_control)
     contador_aux++;
     snprintf(ctx->aux, sizeof(ctx->aux), "@aux%d", contador_aux);
     ctx->tipo = tipo_control;
+    ctx->cant_exactos = 0;
 
     if (ts_insertar_auxiliar(&tabla_simbolos, ctx->aux, tipo_control) == TS_INDICE_INVALIDO)
     {
@@ -212,8 +216,16 @@ static void abrir_when(TipoDato tipo_control)
 
 static void cerrar_when(void)
 {
-    size_t celda = pila_desapilar();
+    ContextoWhen *ctx = &contextos_when[nivel_when - 1];
+    size_t celda;
+    int i;
 
+    for (i = 0; i < ctx->cant_exactos; i++)
+    {
+        free(ctx->exactos[i]);
+    }
+
+    celda = pila_desapilar();
     while (celda != MARCADOR_WHEN)
     {
         polaca_escribir_en(celda, polaca_actual());   // los BI van al final del when
@@ -241,6 +253,52 @@ static void emitir_comparacion_patron(const char *valor, int negativa, const cha
     pila_apilar(polaca_avanzar());
 }
 
+static double valor_numerico(const char *valor, int negativa)
+{
+    double v = atof(valor);
+    return negativa ? -v : v;
+}
+
+static void verificar_rango(const char *inf, int neg_inf, const char *sup, int neg_sup)
+{
+    if (valor_numerico(inf, neg_inf) > valor_numerico(sup, neg_sup))
+    {
+        error_semantico_msg("En un patron de rango el limite inferior no puede ser mayor que el superior");
+    }
+}
+
+static void registrar_exacto(const char *valor, int negativa)
+{
+    ContextoWhen *ctx = &contextos_when[nivel_when - 1];
+    char *texto;
+    int i;
+
+    texto = malloc(strlen(valor) + 2);
+    if (texto == NULL)
+    {
+        fprintf(stderr, "\nError: no hay memoria para validar los patrones del when\n");
+        exit(EXIT_FAILURE);
+    }
+    sprintf(texto, "%s%s", negativa ? "-" : "", valor);
+
+    for (i = 0; i < ctx->cant_exactos; i++)
+    {
+        int igual = (ctx->tipo == TD_STRING)
+                    ? strcmp(ctx->exactos[i], texto) == 0
+                    : atof(ctx->exactos[i]) == atof(texto);
+
+        if (igual)
+        {
+            error_semantico_msg("Hay dos ramas con el mismo patron de valor exacto en el mismo when");
+        }
+    }
+
+    if (ctx->cant_exactos >= MAX_EXACTOS_WHEN)
+    {
+        error_semantico_msg("Demasiadas ramas de valor exacto en un mismo when");
+    }
+    ctx->exactos[ctx->cant_exactos++] = texto;
+}
 %}
 
 %union {
@@ -467,6 +525,7 @@ static void emitir_comparacion_patron(const char *valor, int negativa, const cha
     : IS constante
       {
           verificar_patron($2.tipo);
+          registrar_exacto($2.valor, $2.negativa);
           emitir_comparacion_patron($2.valor, $2.negativa, "BNE");
           free($2.valor);
           $$ = 1;
@@ -480,6 +539,7 @@ static void emitir_comparacion_patron(const char *valor, int negativa, const cha
           }
           verificar_patron($2.tipo);
           verificar_patron($4.tipo);
+          verificar_rango($2.valor, $2.negativa, $4.valor, $4.negativa);
           emitir_comparacion_patron($2.valor, $2.negativa, "BLT");
           emitir_comparacion_patron($4.valor, $4.negativa, "BGT");
           free($2.valor);
