@@ -222,6 +222,25 @@ static void cerrar_when(void)
     nivel_when--;
 }
 
+static void verificar_patron(TipoDato tipo_patron)
+{
+    verificar_comparacion(contextos_when[nivel_when - 1].tipo, tipo_patron);
+}
+
+/* Emite: @aux valor [NEG] CMP salto [celda reservada] y apila la celda reservada */
+static void emitir_comparacion_patron(const char *valor, int negativa, const char *salto)
+{
+    polaca_insertar(contextos_when[nivel_when - 1].aux);
+    polaca_insertar(valor);
+    if (negativa)
+    {
+        polaca_insertar("NEG");
+    }
+    polaca_insertar("CMP");
+    polaca_insertar(salto);
+    pila_apilar(polaca_avanzar());
+}
+
 %}
 
 %union {
@@ -253,7 +272,7 @@ static void cerrar_when(void)
 
 %type <tipo> tipo expresion exp_aritmetica termino unario potencia atomo
 %type <str> comparador
-%type <cant> condicion cond_compuesta
+%type <cant> condicion cond_compuesta patron
 %type <cte> constante cte_numerica
 %%
 
@@ -431,7 +450,13 @@ static void cerrar_when(void)
     ;
 
     rama
-    : patron bloque { regla("rama_when"); }
+    : patron bloque
+      {
+          polaca_insertar("BI");
+          completar_saltos($1, polaca_actual() + 1);   // si el patron no coincide, salta a la rama siguiente
+          pila_apilar(polaca_avanzar());               // reserva la celda del BI, se completa al cerrar el when
+          regla("rama_when");
+      }
     ;
 
     rama_defecto
@@ -441,18 +466,33 @@ static void cerrar_when(void)
     patron
     : IS constante
       {
+          verificar_patron($2.tipo);
+          emitir_comparacion_patron($2.valor, $2.negativa, "BNE");
           free($2.valor);
+          $$ = 1;
           regla("patron_valor_exacto");
       }
     | IN constante OP_RANGO constante
       {
+          if ($2.tipo == TD_STRING || $4.tipo == TD_STRING)
+          {
+              error_semantico_msg("Un rango no admite valores String");
+          }
+          verificar_patron($2.tipo);
+          verificar_patron($4.tipo);
+          emitir_comparacion_patron($2.valor, $2.negativa, "BLT");
+          emitir_comparacion_patron($4.valor, $4.negativa, "BGT");
           free($2.valor);
           free($4.valor);
+          $$ = 2;
           regla("patron_rango");
       }
     | IS comparador constante
       {
+          verificar_patron($3.tipo);
+          emitir_comparacion_patron($3.valor, $3.negativa, salto_inverso($2));
           free($3.valor);
+          $$ = 1;
           regla("patron_guarda");
       }
     ;
