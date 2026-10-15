@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "tabla_simbolos.h"
 #include "polaca.h"
 
@@ -73,6 +74,166 @@ static void verificar_numerico(TipoDato tipo)
         error_semantico_msg("Una operacion aritmetica no admite operandos String");
     }
 }
+
+static size_t celda_ultimo_spaceship = (size_t)-1;
+
+static void nombre_aux(char *dest, int n)
+{
+    snprintf(dest, 16, "@aux%d", n);
+}
+
+static void registrar_aux(int n, TipoDato tipo)
+{
+    char nombre[16];
+
+    nombre_aux(nombre, n);
+    if (ts_insertar_auxiliar(&tabla_simbolos, nombre, tipo) == TS_INDICE_INVALIDO)
+    {
+        fprintf(stderr, "\nError: no hay memoria para guardar la variable auxiliar %s\n", nombre);
+        exit(EXIT_FAILURE);
+    }
+}
+
+static void insertar_aux(int n)
+{
+    char nombre[16];
+
+    nombre_aux(nombre, n);
+    polaca_insertar(nombre);
+}
+
+static void registrar_cte_int(const char *valor)
+{
+    if (ts_insertar_constante(&tabla_simbolos, TD_INT, valor, -1, yylineno) == TS_INDICE_INVALIDO)
+    {
+        fprintf(stderr, "\nError: no hay memoria para guardar la constante %s\n", valor);
+        exit(EXIT_FAILURE);
+    }
+}
+
+/* ---------- TE3: comparacion de tres vias ---------- */
+
+static int iniciar_spaceship(TipoDato tipo_izq)
+{
+    int n;
+
+    verificar_numerico(tipo_izq);
+    n = contador_aux + 1;
+    contador_aux += 3;               /* @aux(n): izq, @aux(n+1): der, @aux(n+2): resultado */
+    registrar_aux(n, tipo_izq);
+    insertar_aux(n);
+    polaca_insertar(":=");
+    return n;
+}
+
+static void cerrar_spaceship(int n, TipoDato tipo_izq, TipoDato tipo_der)
+{
+    size_t l1, l2, fin1, fin2;
+
+    verificar_numerico(tipo_der);
+    if (tipo_izq != tipo_der)
+    {
+        error_semantico_msg("Los dos operandos de la comparacion de tres vias deben ser del mismo tipo");
+    }
+    registrar_aux(n + 1, tipo_der);
+    registrar_aux(n + 2, TD_INT);
+    registrar_cte_int("0");
+    registrar_cte_int("1");
+
+    insertar_aux(n + 1); polaca_insertar(":=");
+
+    /* si izq >= der salta a L1; si no, resultado = -1 */
+    insertar_aux(n); insertar_aux(n + 1); polaca_insertar("CMP"); polaca_insertar("BGE");
+    l1 = polaca_avanzar();
+    polaca_insertar("1"); polaca_insertar("NEG"); insertar_aux(n + 2); polaca_insertar(":=");
+    polaca_insertar("BI"); fin1 = polaca_avanzar();
+
+    /* L1: si izq != der salta a L2; si no, resultado = 0 */
+    polaca_escribir_en(l1, polaca_actual());
+    insertar_aux(n); insertar_aux(n + 1); polaca_insertar("CMP"); polaca_insertar("BNE");
+    l2 = polaca_avanzar();
+    polaca_insertar("0"); insertar_aux(n + 2); polaca_insertar(":=");
+    polaca_insertar("BI"); fin2 = polaca_avanzar();
+
+    /* L2: resultado = 1 */
+    polaca_escribir_en(l2, polaca_actual());
+    polaca_insertar("1"); insertar_aux(n + 2); polaca_insertar(":=");
+
+    polaca_escribir_en(fin1, polaca_actual());
+    polaca_escribir_en(fin2, polaca_actual());
+    celda_ultimo_spaceship = polaca_actual();
+    insertar_aux(n + 2);              /* queda como operando de la expresion */
+}
+
+static void verificar_asignacion_spaceship(const char *nombre)
+{
+    if (celda_ultimo_spaceship != (size_t)-1 &&
+        polaca_actual() == celda_ultimo_spaceship + 1 &&
+        ts_obtener_tipo(&tabla_simbolos, nombre) != TD_INT)
+    {
+        error_semantico_msg("El resultado de una comparacion de tres vias solo puede asignarse a una variable Int");
+    }
+}
+
+/* ---------- TE3: potencia ---------- */
+
+static int iniciar_potencia(TipoDato tipo_base)
+{
+    int n;
+
+    verificar_numerico(tipo_base);
+    n = contador_aux + 1;
+    contador_aux += 3;               /* @aux(n): base, @aux(n+1): exponente, @aux(n+2): resultado */
+    registrar_aux(n, tipo_base);
+    registrar_aux(n + 1, TD_INT);
+    registrar_aux(n + 2, tipo_base);
+    insertar_aux(n);
+    polaca_insertar(":=");
+    return n;
+}
+
+static void verificar_exponente(int inicio, TipoDato tipo_exp)
+{
+    size_t cantidad = polaca_actual() - (size_t)inicio;
+
+    if (tipo_exp != TD_INT)
+    {
+        error_semantico_msg("El exponente de la potencia debe ser de tipo Int");
+    }
+    /* una constante negativa se emite como "cte NEG" */
+    if (cantidad == 2 &&
+        strcmp(polaca_obtener((size_t)inicio + 1), "NEG") == 0 &&
+        isdigit((unsigned char)polaca_obtener((size_t)inicio)[0]))
+    {
+        error_semantico_msg("El exponente de la potencia no puede ser una constante negativa");
+    }
+}
+
+static void cerrar_potencia(int n, int inicio, TipoDato tipo_exp)
+{
+    size_t et, fin, destino;
+
+    verificar_exponente(inicio, tipo_exp);
+    registrar_cte_int("0");
+    registrar_cte_int("1");
+
+    insertar_aux(n + 1); polaca_insertar(":=");               /* exponente -> contador */
+    polaca_insertar("1"); insertar_aux(n + 2); polaca_insertar(":=");   /* resultado = 1 */
+
+    et = polaca_actual();
+    polaca_insertar("ET");
+    insertar_aux(n + 1); polaca_insertar("0"); polaca_insertar("CMP"); polaca_insertar("BLE");
+    fin = polaca_avanzar();                                   /* si contador <= 0, sale */
+    insertar_aux(n + 2); insertar_aux(n); polaca_insertar("*"); insertar_aux(n + 2); polaca_insertar(":=");
+    insertar_aux(n + 1); polaca_insertar("1"); polaca_insertar("-"); insertar_aux(n + 1); polaca_insertar(":=");
+    polaca_insertar("BI");
+    destino = polaca_avanzar();
+    polaca_escribir_en(destino, et);                          /* vuelve al ET */
+    polaca_escribir_en(fin, polaca_actual());
+    insertar_aux(n + 2);              /* queda como operando de la expresion */
+}
+
+
 
 static TipoDato tipo_resultado(TipoDato a, TipoDato b)
 {
@@ -306,6 +467,7 @@ static void registrar_exacto(const char *valor, int negativa)
     int tipo;
     int cant;
     struct { char *valor; int tipo; int negativa; } cte;
+    struct { int n; int inicio; } pot;
 }
 
 %token <str> CTE_INT_POSITIVA CTE_FLOAT_POSITIVA CTE_STRING ID
@@ -382,7 +544,7 @@ static void registrar_exacto(const char *valor, int negativa)
     ;
 
     asignacion
-    : ID OP_ASIG expresion {  verificar_declarada($1); verificar_asignacion($1, $3); polaca_insertar($1); polaca_insertar(":="); free($1); regla("asignacion"); }
+    : ID OP_ASIG expresion {  verificar_declarada($1); verificar_asignacion($1, $3); verificar_asignacion_spaceship($1); polaca_insertar($1); polaca_insertar(":="); free($1); regla("asignacion"); }
     ;
 
     lectura
@@ -571,7 +733,14 @@ static void registrar_exacto(const char *valor, int negativa)
 
     expresion
     : exp_aritmetica
-    | exp_aritmetica OP_SPACESHIP exp_aritmetica { verificar_numerico($1); verificar_numerico($3); $$ = TD_INT; regla("spaceship"); }
+    | exp_aritmetica
+      { $<cant>$ = iniciar_spaceship($1); }
+      OP_SPACESHIP exp_aritmetica
+      {
+          cerrar_spaceship($<cant>2, $1, $4);
+          $$ = TD_INT;
+          regla("spaceship");
+      }
     ;
 
     exp_aritmetica
@@ -594,7 +763,17 @@ static void registrar_exacto(const char *valor, int negativa)
 
     potencia
     : atomo
-    | atomo OP_POT unario { verificar_numerico($1); verificar_numerico($3); $$ = $1; regla("potencia"); }
+    | atomo
+      {
+          $<pot>$.n = iniciar_potencia($1);
+          $<pot>$.inicio = (int)polaca_actual();
+      }
+      OP_POT unario
+      {
+          cerrar_potencia($<pot>2.n, $<pot>2.inicio, $4);
+          $$ = $1;
+          regla("potencia");
+      }
     ;
 
     atomo
