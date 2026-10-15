@@ -3,7 +3,7 @@
 #+ Declaracion de variables: init agrupa las variables por tipo +#
 init {
     a, b, resultado : Float
-    x, y, contador, limite : Int
+    x, y, contador, limite, m, n, r, p1, p2, p3, p4, p5, p6, p7, base, tope : Int
     mensaje : String
     mensaje2: String
 }
@@ -11,8 +11,8 @@ init {
 #+ Asignaciones: se usa := y el valor debe ser compatible con el tipo declarado +#
 x := -32768
 y := 32767
-a := -3402823500000000000000000000000000000.0
-b := -3402823600000000000000000000000000000.0
+a := 340282350000000000000000000000000000000.0
+b := 340282350000000000000000000000000000000.0
 
 contador := 0
 limite := 3
@@ -203,6 +203,64 @@ when (x)
     else { write("x no es 1") }
 }
 
+#+ TE3 - Potencia simple con base y exponente constantes: 2 ** 3 = 8 +#
+p1 := 2 ** 3
+
+#+ TE3 - Potencia con variables: base ** tope = 2 ** 3 = 8 +#
+base := 2
+tope := 3
+p2 := base ** tope
+
+#+ TE3 - Potencia encadenada sin parentesis, asocia a derecha: 2 ** (3 ** 2) = 512 +#
+p3 := 2 ** 3 ** 2
+
+#+ TE3 - Los parentesis alteran el orden: (2 ** 3) ** 2 = 64 +#
+p4 := (2 ** 3) ** 2
+
+#+ TE3 - Precedencia: la potencia se resuelve antes que * y +, 2 + 3 * 2 ** 2 = 14 +#
+p5 := 2 + 3 * 2 ** 2
+
+#+ TE3 - El menos unario tiene menor precedencia que la potencia: -2 ** 2 = -4 +#
+p6 := -2 ** 2
+
+#+ TE3 - Exponente cero: 5 ** 0 = 1, cualquiera sea la base +#
+p7 := 5 ** 0
+
+#+ TE3 - El tipo del resultado es el de la base: base Float da resultado Float, 1.5 ** 2 = 2.25 +#
+resultado := 1.5 ** 2
+
+#+ TE3 - Comparacion de tres vias con sus tres resultados: -1, 1 y 0 +#
+m := 3
+n := 7
+r := m <=> n
+r := n <=> m
+r := m <=> 3
+
+#+ TE3 - Operandos con expresiones aritmeticas: compara 4 contra 4, r = 0 +#
+r := m + 1 <=> n - 3
+
+#+ TE3 - El resultado es un entero reutilizable en cualquier expresion: (m <=> n) * 10 = -10 +#
+r := (m <=> n) * 10
+
+#+ TE3 - El resultado de <=> dentro de la condicion de un if: (m <=> n) == 0 equivale a m == n +#
+if ((m <=> n) == 0)
+{
+    write("m y n son iguales")
+}
+else
+{
+    write("m y n son distintos")
+}
+
+#+ TE3 - La potencia dentro de la condicion de un while, se recalcula en cada vuelta +#
+base := 1
+tope := 20
+while (base ** 2 < tope)
+{
+    write(base)
+    base := base + 1
+}
+
 
 #+ ============================================================
    CASOS DE ERROR EN TIEMPO DE COMPILACION (comentados a proposito)
@@ -325,3 +383,30 @@ when (x)
 
 #+ NOTA: se permite comparar Int con Float (y asignar Int a Float) porque el Int
    se ensancha a Float sin perder informacion. Lo inverso (Float a Int) es error +#
+
+#+ ERROR SEMANTICO TE3: el exponente de una potencia debe ser de tipo Int (2.5 es Float)
+   p1 := 2 ** 2.5 +#
+
+#+ ERROR SEMANTICO TE3: el exponente de una potencia no puede ser una constante negativa
+   p1 := 2 ** -1 +#
+
+#+ ERROR SEMANTICO TE3: el exponente constante negativo entre parentesis tambien es error
+   p1 := 2 ** (-1) +#
+
+#+ ERROR SEMANTICO TE3: el exponente es un String, debe ser de tipo Int
+   p1 := 2 ** mensaje +#
+
+#+ ERROR SEMANTICO TE3: la base de una potencia no puede ser un String
+   p1 := mensaje ** 2 +#
+
+#+ ERROR SEMANTICO TE3: los dos operandos de la comparacion de tres vias deben ser del mismo tipo (Int con Float)
+   r := m <=> a +#
+
+#+ ERROR SEMANTICO TE3: un operando de la comparacion de tres vias no puede ser un String
+   r := mensaje <=> m +#
+
+#+ ERROR SEMANTICO TE3: el resultado de la comparacion de tres vias solo puede asignarse a una variable Int
+   resultado := m <=> n +#
+
+#+ NOTA TE3: a diferencia de las condiciones comunes, donde se permite comparar Int con Float,
+   en la comparacion de tres vias los dos operandos deben ser del mismo tipo +#

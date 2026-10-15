@@ -1,83 +1,150 @@
-NOMBRE                                   | TIPODATO   | VALOR                                   | LONGITUD
-----------------------------------------------------------------------------------------------------------
-a                                        | Float      |                                         |         
-b                                        | Float      |                                         |         
-resultado                                | Float      |                                         |         
-x                                        | Int        |                                         |         
-y                                        | Int        |                                         |         
-contador                                 | Int        |                                         |         
-limite                                   | Int        |                                         |         
-mensaje                                  | String     |                                         |         
-mensaje2                                 | String     |                                         |         
-_32768                                   | Cte_Int    | 32768                                   |         
-_32767                                   | Cte_Int    | 32767                                   |         
-_3402823500000000000000000000000000000.0 | Cte_Float  | 3402823500000000000000000000000000000.0 |         
-_3402823600000000000000000000000000000.0 | Cte_Float  | 3402823600000000000000000000000000000.0 |         
-_0                                       | Cte_Int    | 0                                       |         
-_3                                       | Cte_Int    | 3                                       |         
-_hola mundo                              | Cte_String | hola mundo                              | 10      
-_                                        | Cte_String |                                         | 0       
-_esto es un ejemplo                      | Cte_String | esto es un ejemplo                      | 18      
-_1                                       | Cte_Int    | 1                                       |         
-_2                                       | Cte_Int    | 2                                       |         
-_x es mayor que y                        | Cte_String | x es mayor que y                        | 16      
-_10                                      | Cte_Int    | 10                                      |         
-_resultado alto                          | Cte_String | resultado alto                          | 14      
-_resultado bajo                          | Cte_String | resultado bajo                          | 14      
-_ambos valores son positivos             | Cte_String | ambos valores son positivos             | 27      
-_100                                     | Cte_Int    | 100                                     |         
-_alguno de los dos supera 100            | Cte_String | alguno de los dos supera 100            | 28      
-_x no es mayor que y                     | Cte_String | x no es mayor que y                     | 19      
-_x es positivo y mayor a 10              | Cte_String | x es positivo y mayor a 10              | 26      
-_x es positivo pero menor o igual a 10   | Cte_String | x es positivo pero menor o igual a 10   | 37      
-_completando hasta el limite             | Cte_String | completando hasta el limite             | 27      
-_primera iteracion                       | Cte_String | primera iteracion                       | 17      
-_iteracion siguiente                     | Cte_String | iteracion siguiente                     | 19      
-@aux1                                    | Int        |                                         |         
-_diez                                    | Cte_String | diez                                    | 4       
-_9                                       | Cte_Int    | 9                                       |         
-_entre 1 y 9                             | Cte_String | entre 1 y 9                             | 11      
-_negativo                                | Cte_String | negativo                                | 8       
-_otro valor                              | Cte_String | otro valor                              | 10      
-@aux2                                    | Int        |                                         |         
-_menos diez                              | Cte_String | menos diez                              | 10      
-_5                                       | Cte_Int    | 5                                       |         
-_entre menos 5 y menos 1                 | Cte_String | entre menos 5 y menos 1                 | 23      
-_fuera de los rangos                     | Cte_String | fuera de los rangos                     | 19      
-@aux3                                    | Int        |                                         |         
-_cero                                    | Cte_String | cero                                    | 4       
-_hasta 100                               | Cte_String | hasta 100                               | 9       
-_101                                     | Cte_Int    | 101                                     |         
-_mas de 100                              | Cte_String | mas de 100                              | 10      
-_16                                      | Cte_Int    | 16                                      |         
-@aux4                                    | Int        |                                         |         
-_17                                      | Cte_Int    | 17                                      |         
-_menor de edad                           | Cte_String | menor de edad                           | 13      
-_15                                      | Cte_Int    | 15                                      |         
-_mayor de 15                             | Cte_String | mayor de 15                             | 11      
-_adulto                                  | Cte_String | adulto                                  | 6       
-@aux5                                    | Int        |                                         |         
-_cien                                    | Cte_String | cien                                    | 4       
-_200                                     | Cte_Int    | 200                                     |         
-_300                                     | Cte_Int    | 300                                     |         
-_entre 200 y 300                         | Cte_String | entre 200 y 300                         | 15      
-@aux6                                    | Float      |                                         |         
-_2.5                                     | Cte_Float  | 2.5                                     |         
-_dos y medio                             | Cte_String | dos y medio                             | 11      
-_grande                                  | Cte_String | grande                                  | 6       
-_otro float                              | Cte_String | otro float                              | 10      
-@aux7                                    | String     |                                         |         
-_saludo                                  | Cte_String | saludo                                  | 6       
-_otro texto                              | Cte_String | otro texto                              | 10      
-@aux8                                    | Int        |                                         |         
-_bajo                                    | Cte_String | bajo                                    | 4       
-_6                                       | Cte_Int    | 6                                       |         
-_4                                       | Cte_Int    | 4                                       |         
-_caso especial                           | Cte_String | caso especial                           | 13      
-_alto                                    | Cte_String | alto                                    | 4       
-_otro                                    | Cte_String | otro                                    | 4       
-@aux9                                    | Int        |                                         |         
-@aux10                                   | Int        |                                         |         
-_x es 1 e y es 2                         | Cte_String | x es 1 e y es 2                         | 15      
-_x es 1 e y no es 2                      | Cte_String | x es 1 e y no es 2                      | 18      
-_x no es 1                               | Cte_String | x no es 1                               | 9       
+NOMBRE                                     | TIPODATO   | VALOR                                     | LONGITUD
+--------------------------------------------------------------------------------------------------------------
+a                                          | Float      |                                           |         
+b                                          | Float      |                                           |         
+resultado                                  | Float      |                                           |         
+x                                          | Int        |                                           |         
+y                                          | Int        |                                           |         
+contador                                   | Int        |                                           |         
+limite                                     | Int        |                                           |         
+m                                          | Int        |                                           |         
+n                                          | Int        |                                           |         
+r                                          | Int        |                                           |         
+p1                                         | Int        |                                           |         
+p2                                         | Int        |                                           |         
+p3                                         | Int        |                                           |         
+p4                                         | Int        |                                           |         
+p5                                         | Int        |                                           |         
+p6                                         | Int        |                                           |         
+p7                                         | Int        |                                           |         
+base                                       | Int        |                                           |         
+tope                                       | Int        |                                           |         
+mensaje                                    | String     |                                           |         
+mensaje2                                   | String     |                                           |         
+_32768                                     | Cte_Int    | 32768                                     |         
+_32767                                     | Cte_Int    | 32767                                     |         
+_340282350000000000000000000000000000000.0 | Cte_Float  | 340282350000000000000000000000000000000.0 |         
+_0                                         | Cte_Int    | 0                                         |         
+_3                                         | Cte_Int    | 3                                         |         
+_hola mundo                                | Cte_String | hola mundo                                | 10      
+_                                          | Cte_String |                                           | 0       
+_esto es un ejemplo                        | Cte_String | esto es un ejemplo                        | 18      
+_1                                         | Cte_Int    | 1                                         |         
+_2                                         | Cte_Int    | 2                                         |         
+_x es mayor que y                          | Cte_String | x es mayor que y                          | 16      
+_10                                        | Cte_Int    | 10                                        |         
+_resultado alto                            | Cte_String | resultado alto                            | 14      
+_resultado bajo                            | Cte_String | resultado bajo                            | 14      
+_ambos valores son positivos               | Cte_String | ambos valores son positivos               | 27      
+_100                                       | Cte_Int    | 100                                       |         
+_alguno de los dos supera 100              | Cte_String | alguno de los dos supera 100              | 28      
+_x no es mayor que y                       | Cte_String | x no es mayor que y                       | 19      
+_x es positivo y mayor a 10                | Cte_String | x es positivo y mayor a 10                | 26      
+_x es positivo pero menor o igual a 10     | Cte_String | x es positivo pero menor o igual a 10     | 37      
+_completando hasta el limite               | Cte_String | completando hasta el limite               | 27      
+_primera iteracion                         | Cte_String | primera iteracion                         | 17      
+_iteracion siguiente                       | Cte_String | iteracion siguiente                       | 19      
+@aux1                                      | Int        |                                           |         
+_diez                                      | Cte_String | diez                                      | 4       
+_9                                         | Cte_Int    | 9                                         |         
+_entre 1 y 9                               | Cte_String | entre 1 y 9                               | 11      
+_negativo                                  | Cte_String | negativo                                  | 8       
+_otro valor                                | Cte_String | otro valor                                | 10      
+@aux2                                      | Int        |                                           |         
+_menos diez                                | Cte_String | menos diez                                | 10      
+_5                                         | Cte_Int    | 5                                         |         
+_entre menos 5 y menos 1                   | Cte_String | entre menos 5 y menos 1                   | 23      
+_fuera de los rangos                       | Cte_String | fuera de los rangos                       | 19      
+@aux3                                      | Int        |                                           |         
+_cero                                      | Cte_String | cero                                      | 4       
+_hasta 100                                 | Cte_String | hasta 100                                 | 9       
+_101                                       | Cte_Int    | 101                                       |         
+_mas de 100                                | Cte_String | mas de 100                                | 10      
+_16                                        | Cte_Int    | 16                                        |         
+@aux4                                      | Int        |                                           |         
+_17                                        | Cte_Int    | 17                                        |         
+_menor de edad                             | Cte_String | menor de edad                             | 13      
+_15                                        | Cte_Int    | 15                                        |         
+_mayor de 15                               | Cte_String | mayor de 15                               | 11      
+_adulto                                    | Cte_String | adulto                                    | 6       
+@aux5                                      | Int        |                                           |         
+_cien                                      | Cte_String | cien                                      | 4       
+_200                                       | Cte_Int    | 200                                       |         
+_300                                       | Cte_Int    | 300                                       |         
+_entre 200 y 300                           | Cte_String | entre 200 y 300                           | 15      
+@aux6                                      | Float      |                                           |         
+_2.5                                       | Cte_Float  | 2.5                                       |         
+_dos y medio                               | Cte_String | dos y medio                               | 11      
+_grande                                    | Cte_String | grande                                    | 6       
+_otro float                                | Cte_String | otro float                                | 10      
+@aux7                                      | String     |                                           |         
+_saludo                                    | Cte_String | saludo                                    | 6       
+_otro texto                                | Cte_String | otro texto                                | 10      
+@aux8                                      | Int        |                                           |         
+_bajo                                      | Cte_String | bajo                                      | 4       
+_6                                         | Cte_Int    | 6                                         |         
+_4                                         | Cte_Int    | 4                                         |         
+_caso especial                             | Cte_String | caso especial                             | 13      
+_alto                                      | Cte_String | alto                                      | 4       
+_otro                                      | Cte_String | otro                                      | 4       
+@aux9                                      | Int        |                                           |         
+@aux10                                     | Int        |                                           |         
+_x es 1 e y es 2                           | Cte_String | x es 1 e y es 2                           | 15      
+_x es 1 e y no es 2                        | Cte_String | x es 1 e y no es 2                        | 18      
+_x no es 1                                 | Cte_String | x no es 1                                 | 9       
+@aux11                                     | Int        |                                           |         
+@aux12                                     | Int        |                                           |         
+@aux13                                     | Int        |                                           |         
+@aux14                                     | Int        |                                           |         
+@aux15                                     | Int        |                                           |         
+@aux16                                     | Int        |                                           |         
+@aux17                                     | Int        |                                           |         
+@aux18                                     | Int        |                                           |         
+@aux19                                     | Int        |                                           |         
+@aux20                                     | Int        |                                           |         
+@aux21                                     | Int        |                                           |         
+@aux22                                     | Int        |                                           |         
+@aux23                                     | Int        |                                           |         
+@aux24                                     | Int        |                                           |         
+@aux25                                     | Int        |                                           |         
+@aux26                                     | Int        |                                           |         
+@aux27                                     | Int        |                                           |         
+@aux28                                     | Int        |                                           |         
+@aux29                                     | Int        |                                           |         
+@aux30                                     | Int        |                                           |         
+@aux31                                     | Int        |                                           |         
+@aux32                                     | Int        |                                           |         
+@aux33                                     | Int        |                                           |         
+@aux34                                     | Int        |                                           |         
+@aux35                                     | Int        |                                           |         
+@aux36                                     | Int        |                                           |         
+@aux37                                     | Int        |                                           |         
+_1.5                                       | Cte_Float  | 1.5                                       |         
+@aux38                                     | Float      |                                           |         
+@aux39                                     | Int        |                                           |         
+@aux40                                     | Float      |                                           |         
+_7                                         | Cte_Int    | 7                                         |         
+@aux41                                     | Int        |                                           |         
+@aux42                                     | Int        |                                           |         
+@aux43                                     | Int        |                                           |         
+@aux44                                     | Int        |                                           |         
+@aux45                                     | Int        |                                           |         
+@aux46                                     | Int        |                                           |         
+@aux47                                     | Int        |                                           |         
+@aux48                                     | Int        |                                           |         
+@aux49                                     | Int        |                                           |         
+@aux50                                     | Int        |                                           |         
+@aux51                                     | Int        |                                           |         
+@aux52                                     | Int        |                                           |         
+@aux53                                     | Int        |                                           |         
+@aux54                                     | Int        |                                           |         
+@aux55                                     | Int        |                                           |         
+@aux56                                     | Int        |                                           |         
+@aux57                                     | Int        |                                           |         
+@aux58                                     | Int        |                                           |         
+_m y n son iguales                         | Cte_String | m y n son iguales                         | 17      
+_m y n son distintos                       | Cte_String | m y n son distintos                       | 19      
+_20                                        | Cte_Int    | 20                                        |         
+@aux59                                     | Int        |                                           |         
+@aux60                                     | Int        |                                           |         
+@aux61                                     | Int        |                                           |         
